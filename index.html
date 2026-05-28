@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portofolio Profesional | Full-Stack Web Developer</title>
+    <meta name="description" content="Portofolio profesional Full-Stack Web Developer yang berspesialisasi dalam perancangan sistem e-coffee commerce modern berbasis Next.js dan Laravel.">
+    <meta name="keywords" content="web developer, portofolio, full-stack, nextjs, laravel, mysql, e-coffee commerce, website portfolio">
+    <meta name="author" content="Riansyah">
+    
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons for beautiful icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <!-- Background Elements -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="grid-overlay"></div>
+
+    <!-- Header / Navbar -->
+    <header class="header" id="header">
+        <div class="container navbar-container">
+            <a href="#" class="logo">
+                <span class="logo-accent">&lt;</span>Rian<span class="logo-text">Dev</span><span class="logo-accent">/&gt;</span>
+            </a>
+            
+            <nav class="nav-menu" id="nav-menu">
+                <ul class="nav-list">
+                    <li><a href="#home" class="nav-link active-link">Beranda</a></li>
+                    <li><a href="#about" class="nav-link">Tentang</a></li>
+                    <li><a href="#skills" class="nav-link">Keahlian</a></li>
+                    <li><a href="#projects" class="nav-link">Proyek</a></li>
+                    <li><a href="#contact" class="nav-link">Kontak</a></li>
+                </ul>
+            </nav>
+            
+            <div class="nav-actions">
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="btn-icon" aria-label="Ubah Tema">
+                    <i data-lucide="sun" class="sun-icon"></i>
+                    <i data-lucide="moon" class="moon-icon"></i>
+                </button>
+                
+                <!-- Let's Talk CTA button -->
+                <a href="https://wa.me/6289668468181?text=Halo%20Riansyah,%20saya%20tertarik%20untuk%20bekerja%20sama%20dengan%20Anda." target="_blank" rel="noopener noreferrer" class="btn btn-outline nav-cta">Hubungi Saya</a>
+                
+                <!-- Mobile Menu Toggle -->
+                <button id="menu-toggle" class="btn-icon menu-toggle" aria-label="Menu">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section section" id="home">
+            <div class="container grid hero-grid">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <span class="badge-dot"></span>
+                        <span class="badge-text">Tersedia untuk Proyek Baru</span>
+                    </div>
+                    <h1 class="hero-title">
+                        Halo, Saya <span class="gradient-text">Riansyah</span>
+                    </h1>
+                    <h2 class="hero-subtitle">
+                        Full-Stack Developer & Web Engineer
+                    </h2>
+                    <p class="hero-description">
+                        Saya berspesialisasi dalam perancangan dan implementasi sistem web e-commerce skala modern menggunakan **Next.js** di sisi frontend, **Laravel** sebagai backend API, dan **MySQL** untuk basis data. Berdedikasi dalam mendukung transformasi pembelian & pembayaran digital secara interaktif.
+                    </p>
+                    
+                    <div class="hero-buttons">
+                        <a href="#projects" class="btn btn-primary">
+                            <span>Lihat Portofolio</span>
+                            <i data-lucide="arrow-right"></i>
+                        </a>
+                        <a href="https://wa.me/6289668468181?text=Halo%20Riansyah,%20saya%20tertarik%20untuk%20bekerja%20sama%20dengan%20Anda." target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                            <span>Hubungi Saya</span>
+                            <i data-lucide="message-square"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="hero-socials">
+                        <span class="socials-label">Ikuti saya:</span>
+                        <div class="social-links">
+                            <a href="https://github.com/Riansya10" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="GitHub">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                            </a>
+                            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="LinkedIn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-linkedin"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+                            </a>
+                            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="Instagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hero-image-container">
+                    <div class="profile-card-wrapper">
+                        <div class="profile-card">
+                            <div class="profile-image-box">
+                                <img src="assets/profile.png" alt="Riansyah" class="profile-img">
+                            </div>
+                            <div class="floating-badge badge-top-right">
+                                <div class="badge-icon-box"><i data-lucide="code-2"></i></div>
+                                <div class="badge-info">
+                                    <span class="badge-title">Frontend</span>
+                                    <span class="badge-sub">Next.js & JS</span>
+                                </div>
+                            </div>
+                            <div class="floating-badge badge-bottom-left">
+                                <div class="badge-icon-box"><i data-lucide="database"></i></div>
+                                <div class="badge-info">
+                                    <span class="badge-title">Backend</span>
+                                    <span class="badge-sub">Laravel & MySQL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="stats-section">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 class="stat-number">2+</h3>
+                        <p class="stat-label">Tahun Pengalaman</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 class="stat-number">3+</h3>
+                        <p class="stat-label">Proyek Selesai</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 class="stat-number">10+</h3>
+                        <p class="stat-label">Klien Puas</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 class="stat-number">99%</h3>
+                        <p class="stat-label">Ulasan Positif</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Me Section -->
+        <section class="about-section section" id="about">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-tagline">Mengenal Lebih Dekat</span>
+                    <h2 class="section-title">Tentang Saya</h2>
+                    <div class="section-underline"></div>
+                </div>
+                
+                <div class="grid about-grid">
+                    <div class="about-info">
+                        <h3 class="about-subtitle">Membangun Solusi Digital dengan Pendekatan Kreatif</h3>
+                        <p class="about-text">
+                            Saya adalah seorang web developer yang bersemangat dalam menyatukan fungsionalitas backend yang tangguh dengan desain frontend yang memukau. Dengan dasar yang kuat dalam pemrograman, saya selalu berusaha untuk membuat kode yang bersih, efisien, dan mudah dipelihara.
+                        </p>
+                        <p class="about-text">
+                            Saya suka mengeksplorasi teknologi baru dan menerapkannya dalam proyek nyata. Baik itu membuat sistem e-commerce berskala penuh dengan pembayaran otomatis, maupun landing page interaktif dengan performa optimal.
+                        </p>
+                        
+                        <!-- Interactive Tabs for Education & Experience -->
+                        <div class="about-tabs">
+                            <div class="tabs-buttons">
+                                <button class="tab-btn active" data-target="#tab-exp">Pengalaman</button>
+                                <button class="tab-btn" data-target="#tab-edu">Pendidikan</button>
+                                <button class="tab-btn" data-target="#tab-cert">Sertifikasi</button>
+                            </div>
+                            
+                            <div class="tabs-content">
+                                <!-- Experience Tab Content -->
+                                <div class="tab-pane active" id="tab-exp">
+                                    <div class="timeline">
+                                        <div class="timeline-item">
+                                            <span class="timeline-date">2025 - Sekarang</span>
+                                            <h4 class="timeline-title">Full-Stack Web Developer & Researcher</h4>
+                                            <p class="timeline-org">Proyek Tugas Akhir / Kedai Kopi E-Commerce</p>
+                                            <p class="timeline-desc">Merancang & mengimplementasikan sistem "E-Coffee Commerce" berbasis web untuk digitalisasi transaksi dan pembayaran terintegrasi menggunakan Next.js, Laravel API, dan MySQL.</p>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <span class="timeline-date">2024 - 2025</span>
+                                            <h4 class="timeline-title">Web Developer (Fokus Interaktivitas)</h4>
+                                            <p class="timeline-org">Agensi Digital & Freelance</p>
+                                            <p class="timeline-desc">Membangun antarmuka web responsif dan dinamis berbasis JavaScript, merancang struktur basis data relasional MySQL, serta mengoptimalkan performa API.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Education Tab Content -->
+                                <div class="tab-pane" id="tab-edu">
+                                    <div class="timeline">
+                                        <div class="timeline-item">
+                                            <span class="timeline-date">2024 - Sekarang</span>
+                                            <h4 class="timeline-title">Teknik Informatika (D4 Terapan)</h4>
+                                            <p class="timeline-org">Politeknik Negeri Batam</p>
+                                            <p class="timeline-desc">Fokus pada pengembangan aplikasi web full-stack, perancangan sistem repositori akreditasi (ReDDA) berbasis Next.js & PostgreSQL, rekayasa perangkat lunak, dan manajemen basis data.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Certifications Tab Content -->
+                                <div class="tab-pane" id="tab-cert">
+                                    <ul class="cert-list">
+                                        <li class="cert-item">
+                                            <i data-lucide="award" class="cert-icon"></i>
+                                            <div class="cert-info">
+                                                <h4 class="cert-title">PBL: Repository Digital Data Akreditasi Polibatam</h4>
+                                                <p class="cert-org">Politeknik Negeri Batam & DIKTISAINTEK | TA 2025/2026 Ganjil</p>
+                                            </div>
+                                        </li>
+                                        <li class="cert-item">
+                                            <i data-lucide="award" class="cert-icon"></i>
+                                            <div class="cert-info">
+                                                <h4 class="cert-title">PBL: Prototype 2B Malam - Rekomendasi Kuliner Khas Bali</h4>
+                                                <p class="cert-org">Politeknik Negeri Batam & DIKTISAINTEK | TA 2024/2025 Genap</p>
+                                            </div>
+                                        </li>
+                                        <li class="cert-item">
+                                            <i data-lucide="award" class="cert-icon"></i>
+                                            <div class="cert-info">
+                                                <h4 class="cert-title">PBL: Aplikasi Rekomendasi Kuliner Khas Palembang</h4>
+                                                <p class="cert-org">Politeknik Negeri Batam & DIKTISAINTEK | TA 2024/2025 Ganjil</p>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section class="skills-section section" id="skills">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-tagline">Kekuatan Teknis Saya</span>
+                    <h2 class="section-title">Keahlian Saya</h2>
+                    <div class="section-underline"></div>
+                </div>
+                
+                <div class="skills-wrapper">
+                    <!-- Tech Stack Categories -->
+                    <div class="skills-category-tabs">
+                        <button class="skills-cat-btn active" data-category="all">Semua</button>
+                        <button class="skills-cat-btn" data-category="frontend">Frontend</button>
+                        <button class="skills-cat-btn" data-category="backend">Backend</button>
+                        <button class="skills-cat-btn" data-category="design-tools">Desain & Alat</button>
+                    </div>
+
+                    <div class="grid skills-grid">
+                        <!-- Frontend Skills -->
+                        <div class="skill-card" data-category="frontend">
+                            <div class="skill-header">
+                                <div class="skill-info">
+                                    <div class="skill-icon-box react-color"><i data-lucide="atom"></i></div>
+                                    <h3 class="skill-name">React / Next.js</h3>
+                                </div>
+                                <span class="skill-percentage">90%</span>
+                            </div>
+                            <div class="skill-bar-bg">
+                                <div class="skill-bar-fill" data-progress="90%" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="skill-card" data-category="frontend">
+                            <div class="skill-header">
+                                <div class="skill-info">
+                                    <div class="skill-icon-box js-color"><i data-lucide="file-code-2"></i></div>
+                                    <h3 class="skill-name">Modern JavaScript / TS</h3>
+                                </div>
+                                <span class="skill-percentage">85%</span>
+                            </div>
+                            <div class="skill-bar-bg">
+                                <div class="skill-bar-fill" data-progress="85%" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="skill-card" data-category="frontend">
+                            <div class="skill-header">
+                                <div class="skill-info">
+                                    <div class="skill-icon-box css-color"><i data-lucide="palette"></i></div>
+                                    <h3 class="skill-name">CSS / Tailwind CSS</h3>
+                                </div>
+                                <span class="skill-percentage">95%</span>
+                            </div>
+                            <div class="skill-bar-bg">
+                                <div class="skill-bar-fill" data-progress="95%" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Backend Skills -->
+                        <div class="skill-card" data-category="backend">
+                            <div class="skill-header">
+                                <div class="skill-info">
+                                    <div class="skill-icon-box php-color"><i data-lucide="code"></i></div>
+                                    <h3 class="skill-name">Laravel (PHP Framework)</h3>
+                                </div>
+                                <span class="skill-percentage">92%</span>
+                            </div>
+                            <div class="skill-bar-bg">
+                                <div class="skill-bar-fill" data-progress="92%" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="skill-card" data-category="backend">
+                            <div class="skill-header">
+                                <div class="skill-info">
+                                    <div class="skill-icon-box php-color"><i data-lucide="terminal"></i></div>
+                                    <h3 class="skill-name">PHP (Server-Side Logic)</h3>
+                                </div>
+                                <span class="skill-percentage">88%</span>
+                            </div>
+                            <div class="skill-bar-bg">
+                                <div class="skill-bar-fill" data-progress="88%" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="skill-card" data-category="backend">
+                            <div class="skill-header">
+                                <div class="skill-info">
+                                    <div class="skill-icon-box db-color"><i data-lucide="database"></i></div>
+                                    <h3 class="skill-name">MySQL Database</h3>
+                                </div>
+                                <span class="skill-percentage">90%</span>
+                            </div>
+                            <div class="skill-bar-bg">
+                                <div class="skill-bar-fill" data-progress="90%" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Design & Tools -->
+                        <div class="skill-card" data-category="design-tools">
+                            <div class="skill-header">
+                                <div class="skill-info">
+                                    <div class="skill-icon-box figma-color"><i data-lucide="figma"></i></div>
+                                    <h3 class="skill-name">Figma UI/UX</h3>
+                                </div>
+                                <span class="skill-percentage">80%</span>
+                            </div>
+                            <div class="skill-bar-bg">
+                                <div class="skill-bar-fill" data-progress="80%" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="skill-card" data-category="design-tools">
+                            <div class="skill-header">
+                                <div class="skill-info">
+                                    <div class="skill-icon-box git-color"><i data-lucide="git-branch"></i></div>
+                                    <h3 class="skill-name">Git & GitHub CI/CD</h3>
+                                </div>
+                                <span class="skill-percentage">90%</span>
+                            </div>
+                            <div class="skill-bar-bg">
+                                <div class="skill-bar-fill" data-progress="90%" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section class="projects-section section" id="projects">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-tagline">Galeri Karya Terbaik</span>
+                    <h2 class="section-title">Proyek Pilihan</h2>
+                    <div class="section-underline"></div>
+                </div>
+
+                <!-- Project Filters -->
+                <div class="project-filters">
+                    <button class="filter-btn active" data-filter="all">Semua</button>
+                    <button class="filter-btn" data-filter="e-commerce">E-Commerce</button>
+                    <button class="filter-btn" data-filter="system">Sistem Informasi</button>
+                </div>
+
+                <!-- Projects Grid -->
+                <div class="grid projects-grid">
+                    <!-- Project 1: E-Coffee Commerce Flagship -->
+                    <article class="project-card" data-category="e-commerce">
+                        <div class="project-img-box is-slider">
+                            <div class="slider-container">
+                                <div class="slider-track">
+                                    <div class="slide"><img src="assets/project_coffee_landing.png" alt="Sistem E-Coffee Commerce Kedai Kopi - Halaman Utama" class="project-img"></div>
+                                    <div class="slide"><img src="assets/project_coffee_login.png" alt="Sistem E-Coffee Commerce Kedai Kopi - Halaman Login" class="project-img"></div>
+                                    <div class="slide"><img src="assets/project_coffee_menu.png" alt="Sistem E-Coffee Commerce Kedai Kopi - Halaman Menu" class="project-img"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Slider Nav Buttons -->
+                            <button class="slider-nav-btn prev" aria-label="Gambar sebelumnya"><i data-lucide="chevron-left"></i></button>
+                            <button class="slider-nav-btn next" aria-label="Gambar berikutnya"><i data-lucide="chevron-right"></i></button>
+                            
+                            <!-- Slider Dots -->
+                            <div class="slider-dots">
+                                <span class="dot active" data-index="0"></span>
+                                <span class="dot" data-index="1"></span>
+                                <span class="dot" data-index="2"></span>
+                            </div>
+
+                            <div class="project-overlay">
+                                <div class="project-actions">
+                                    <a href="https://github.com/mhdraihan1005/kopikeliling.git" target="_blank" rel="noopener noreferrer" class="btn-icon-link" aria-label="Lihat Demo"><i data-lucide="external-link"></i></a>
+                                    <a href="https://github.com/mhdraihan1005/kopikeliling.git" target="_blank" rel="noopener noreferrer" class="btn-icon-link" aria-label="Lihat Kode">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="project-info">
+                            <span class="project-tag">Full-Stack Application</span>
+                            <h3 class="project-card-title">Sistem E-Coffee Commerce Kedai Kopi</h3>
+                            <p class="project-card-desc">Perancangan dan Implementasi Sistem E-Coffee Commerce Berbasis Web untuk Mendukung Pembelian dan Pembayaran Digital pada Usaha Kedai Kopi. Dilengkapi multi-role login, menu interaktif, dan checkout transaksi digital.</p>
+                            <div class="project-tech-stack">
+                                <span>Next.js</span>
+                                <span>Laravel API</span>
+                                <span>JavaScript</span>
+                                <span>PHP</span>
+                                <span>MySQL</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Project 2: Repository Akreditasi Polibatam -->
+                    <article class="project-card" data-category="system">
+                        <div class="project-img-box is-slider">
+                            <div class="slider-container">
+                                <div class="slider-track">
+                                    <div class="slide"><img src="assets/project_redda_landing.png" alt="Repository Akreditasi Polibatam - Landing Page" class="project-img"></div>
+                                    <div class="slide"><img src="assets/project_redda_login.png" alt="Repository Akreditasi Polibatam - Portal Login" class="project-img"></div>
+                                    <div class="slide"><img src="assets/project_redda_dashboard.png" alt="Repository Akreditasi Polibatam - Dashboard Evaluasi" class="project-img"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Slider Nav Buttons -->
+                            <button class="slider-nav-btn prev" aria-label="Gambar sebelumnya"><i data-lucide="chevron-left"></i></button>
+                            <button class="slider-nav-btn next" aria-label="Gambar berikutnya"><i data-lucide="chevron-right"></i></button>
+                            
+                            <!-- Slider Dots -->
+                            <div class="slider-dots">
+                                <span class="dot active" data-index="0"></span>
+                                <span class="dot" data-index="1"></span>
+                                <span class="dot" data-index="2"></span>
+                            </div>
+
+                            <div class="project-overlay">
+                                <div class="project-actions">
+                                    <a href="https://github.com/deaasnuari/repository-akreditasi-polibatam-.git" target="_blank" rel="noopener noreferrer" class="btn-icon-link" aria-label="Lihat Demo"><i data-lucide="external-link"></i></a>
+                                    <a href="https://github.com/deaasnuari/repository-akreditasi-polibatam-.git" target="_blank" rel="noopener noreferrer" class="btn-icon-link" aria-label="Lihat Kode">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="project-info">
+                            <span class="project-tag">Full-Stack Application</span>
+                            <h3 class="project-card-title">Repository Akreditasi Polibatam</h3>
+                            <p class="project-card-desc">Sistem Informasi Akreditasi & Repositori Digital Polibatam (ReDDA) untuk mengelola, menyimpan, dan mengakses seluruh dokumen akreditasi program studi secara terpusat, digital, dan terstruktur. Dilengkapi multi-role login, dashboard interaktif, serta pengumpulan LKPS dan LED.</p>
+                            <div class="project-tech-stack">
+                                <span>Next.js</span>
+                                <span>JavaScript</span>
+                                <span>PostgreSQL</span>
+                                <span>Tailwind CSS</span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="contact-section section" id="contact">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-tagline">Mari Berkolaborasi</span>
+                    <h2 class="section-title">Hubungi Saya</h2>
+                    <div class="section-underline"></div>
+                </div>
+
+                <div class="grid contact-grid">
+                    <!-- Contact Information -->
+                    <div class="contact-info-box">
+                        <h3 class="contact-info-title">Mari wujudkan ide hebat Anda menjadi kenyataan!</h3>
+                        <p class="contact-info-desc">
+                            Saya senang bekerja sama untuk membangun sistem baru yang inovatif, atau sekadar berdiskusi tentang teknologi. Hubungi saya melalui formulir atau kontak di bawah ini.
+                        </p>
+                        
+                        <div class="contact-methods">
+                            <div class="contact-method">
+                                <div class="method-icon"><i data-lucide="mail"></i></div>
+                                <div class="method-details">
+                                    <span class="method-label">Email Saya</span>
+                                    <a href="mailto:riansyah.dev@gmail.com" class="method-value">riansyah.dev@gmail.com</a>
+                                </div>
+                            </div>
+                            <div class="contact-method">
+                                <div class="method-icon"><i data-lucide="phone"></i></div>
+                                <div class="method-details">
+                                    <span class="method-label">Telepon / WhatsApp</span>
+                                    <a href="https://wa.me/6289668468181?text=Halo%20Riansyah,%20saya%20tertarik%20untuk%20bekerja%20sama%20dengan%20Anda." target="_blank" rel="noopener noreferrer" class="method-value">+62 896-6846-8181</a>
+                                </div>
+                            </div>
+                            <div class="contact-method">
+                                <div class="method-icon"><i data-lucide="map-pin"></i></div>
+                                <div class="method-details">
+                                    <span class="method-label">Lokasi</span>
+                                    <span class="method-value">Batam, Kepulauan Riau, Indonesia</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Form -->
+                    <div class="contact-form-box">
+                        <form id="contact-form" class="contact-form">
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="name" class="form-label">Nama Lengkap</label>
+                                    <input type="text" id="name" name="name" class="form-input" placeholder="Masukkan nama Anda" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email" class="form-label">Alamat Email</label>
+                                    <input type="email" id="email" name="email" class="form-input" placeholder="contoh@email.com" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="subject" class="form-label">Subjek</label>
+                                <input type="text" id="subject" name="subject" class="form-input" placeholder="Topik pembicaraan" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="message" class="form-label">Pesan</label>
+                                <textarea id="message" name="message" rows="5" class="form-input" placeholder="Tuliskan detail pesan Anda di sini..." required></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-submit">
+                                <span>Kirim Pesan</span>
+                                <i data-lucide="send"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <div class="footer-logo">
+                <span class="logo-accent">&lt;</span>Rian<span class="logo-text">Dev</span><span class="logo-accent">/&gt;</span>
+            </div>
+            <p class="footer-text">Dibuat dengan dedikasi penuh menggunakan HTML5, Vanilla CSS, dan JS Interaktif.</p>
+            <div class="footer-socials">
+                <a href="https://github.com/Riansya10" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                </a>
+                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-linkedin"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+                </a>
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                </a>
+            </div>
+            <div class="footer-divider"></div>
+            <p class="footer-copy">&copy; 2026 Riansyah. Hak Cipta Dilindungi.</p>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <a href="#" class="scroll-to-top" id="scroll-to-top" aria-label="Kembali ke Atas">
+        <i data-lucide="arrow-up"></i>
+    </a>
+
+    <!-- Floating Feedback Notification -->
+    <div class="toast-notification" id="toast-notification">
+        <div class="toast-content">
+            <i data-lucide="check-circle" class="toast-icon"></i>
+            <span class="toast-message">Pesan Anda berhasil dikirim!</span>
+        </div>
+    </div>
+
+    <!-- Script JS -->
+    <script src="script.js"></script>
+</body>
+</html>
