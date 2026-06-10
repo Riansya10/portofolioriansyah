@@ -23,10 +23,22 @@ let bCanvas, bCtx;
 let bState = B_STATE_BETTING;
 let bAnimId = null;
 
-// Virtual Balance & Betting
-let playerBalance = 1000;
+// Game Modes & Balance
+let bMode = 'solo'; // solo, local, online
+let playerBalance = 1000; // Used for Solo Mode
+let player1Balance = 1000; // Used for 1v1 Mode
+let player2Balance = 1000; // Used for 1v1 Mode
+let activeBettor = 1; // P1 or P2 currently betting in 1v1
 let activeBets = { [SPOT_PLAYER]: 0, [SPOT_TIE]: 0, [SPOT_BANKER]: 0 };
 let selectedChipValue = 50;
+
+// WebRTC PeerJS variables
+let peer = null;
+let conn = null;
+let isHost = false;
+let isConnected = false;
+let onlineRoomCode = "";
+const PEER_PREFIX = 'bac-';
 
 // Card Game variables
 let shoe = []; // deck shoe
@@ -38,6 +50,7 @@ let roundWinner = ""; // player, banker, tie
 let lastRoundResultText = ""; // text outcome description
 let winLossNetMessage = ""; // e.g. "Anda menang +100 koin!"
 let lastOutcomeText = "BELUM ADA"; // shows in dashboard
+let winnerAnnouncement = ""; // match victory text
 
 // Bead Plate Roadmap History
 let roadmapHistory = []; // list of outcomes ('P', 'B', 'T')
@@ -216,6 +229,32 @@ function initBaccarat() {
     document.addEventListener('fullscreenchange', handleBaccaratFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleBaccaratFullscreenChange);
 
+    // Game Mode Selection Click Handlers
+    const btnModeSolo = document.getElementById('btn-baccarat-mode-solo');
+    const btnModeLocal = document.getElementById('btn-baccarat-mode-local');
+    const btnModeOnline = document.getElementById('btn-baccarat-mode-online');
+    
+    if (btnModeSolo) {
+        btnModeSolo.addEventListener('click', () => switchBaccaratMode('solo'));
+    }
+    if (btnModeLocal) {
+        btnModeLocal.addEventListener('click', () => switchBaccaratMode('local'));
+    }
+    if (btnModeOnline) {
+        btnModeOnline.addEventListener('click', () => switchBaccaratMode('online'));
+    }
+
+    // Online Action Buttons Click Handlers
+    const btnOnlineHost = document.getElementById('btn-online-host');
+    const btnOnlineJoin = document.getElementById('btn-online-join');
+    
+    if (btnOnlineHost) {
+        btnOnlineHost.addEventListener('click', hostOnlineGame);
+    }
+    if (btnOnlineJoin) {
+        btnOnlineJoin.addEventListener('click', joinOnlineGame);
+    }
+
     // Setup controls
     setupBaccaratControls();
 }
@@ -245,6 +284,7 @@ function closeBaccaratModal() {
     if (modal) {
         modal.classList.remove('show');
         stopBaccaratLoop();
+        disconnectOnlineGame();
         if (document.fullscreenElement) {
             document.exitFullscreen().catch(() => {});
         }
@@ -310,6 +350,266 @@ function handleBaccaratFullscreenChange() {
 }
 
 /* ==========================================================================
+   GAME MODES SWITCHER
+   ========================================================================== */
+function switchBaccaratMode(mode) {
+    if (bState !== B_STATE_BETTING && bState !== B_STATE_OVER) {
+        alert("Selesaikan putaran game yang sedang berjalan terlebih dahulu!");
+        return;
+    }
+    
+    BaccaratAudio.playClick();
+    bMode = mode;
+    
+    // Toggle active selector class
+    document.querySelectorAll('.baccarat-mode-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Show/hide online setup panel
+    const onlineSetupPanel = document.getElementById('baccarat-online-setup');
+    if (onlineSetupPanel) {
+        if (mode === 'online') {
+            onlineSetupPanel.style.display = 'block';
+        } else {
+            onlineSetupPanel.style.display = 'none';
+        }
+    }
+    
+    if (mode === 'solo') {
+        document.getElementById('btn-baccarat-mode-solo').classList.add('active');
+        disconnectOnlineGame();
+        resetBaccaratMatch();
+    } else if (mode === 'local') {
+        document.getElementById('btn-baccarat-mode-local').classList.add('active');
+        disconnectOnlineGame();
+        player1Balance = 1000;
+        player2Balance = 1000;
+        activeBettor = 1;
+        resetBaccaratMatch();
+    } else if (mode === 'online') {
+        document.getElementById('btn-baccarat-mode-online').classList.add('active');
+        player1Balance = 1000;
+        player2Balance = 1000;
+        activeBettor = 1; // Host (P1) is bettor first
+        resetBaccaratMatch();
+        updateOnlineStatus("Tidak Terhubung", "disconnected");
+    }
+    
+    updateModeDashboardLabels();
+}
+
+function updateModeDashboardLabels() {
+    const p1Label = document.getElementById('label-player-coin');
+    const p2Label = document.getElementById('label-last-outcome');
+    const betLabel = document.getElementById('label-current-bet');
+    
+    if (bMode === 'solo') {
+        if (p1Label) p1Label.textContent = "Saldo Anda";
+        if (p2Label) p2Label.textContent = "Hasil Terakhir";
+        if (betLabel) betLabel.textContent = "Total Taruhan";
+    } else if (bMode === 'local') {
+        if (p1Label) p1Label.textContent = "Saldo Player 1";
+        if (p2Label) p2Label.textContent = "Saldo Player 2";
+        if (betLabel) betLabel.textContent = "Taruhan Ronde";
+    } else if (bMode === 'online') {
+        if (p1Label) {
+            p1Label.textContent = isHost ? "Saldo Anda (P1)" : "Saldo P1";
+        }
+        if (p2Label) {
+            p2Label.textContent = isHost ? "Saldo P2" : "Saldo Anda (P2)";
+        }
+        if (betLabel) betLabel.textContent = "Taruhan Ronde";
+    }
+}
+
+/* ==========================================================================
+   P2P PEERJS ONLINE CONNECTION HANDLERS
+   ========================================================================== */
+function hostOnlineGame() {
+    BaccaratAudio.playClick();
+    disconnectOnlineGame(); // Clean up existing
+    
+    // Generate a 4-digit code
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    onlineRoomCode = code;
+    
+    const hostCodeVal = document.getElementById('host-code-val');
+    const roomCodeDisplay = document.getElementById('room-code-display');
+    if (hostCodeVal) hostCodeVal.textContent = code;
+    if (roomCodeDisplay) roomCodeDisplay.style.display = 'block';
+    
+    updateOnlineStatus("Sedang membuat ruangan...", "connecting");
+    
+    isHost = true;
+    peer = new Peer(PEER_PREFIX + code);
+    
+    peer.on('open', () => {
+        updateOnlineStatus("Menunggu lawan masuk (Kode: " + code + ")...", "connecting");
+    });
+    
+    peer.on('connection', (connection) => {
+        conn = connection;
+        setupConnection();
+    });
+    
+    peer.on('error', (err) => {
+        console.error("PeerJS error: ", err);
+        updateOnlineStatus("Gagal membuat ruangan. Kode tabrakan?", "disconnected");
+        if (roomCodeDisplay) roomCodeDisplay.style.display = 'none';
+    });
+}
+
+function joinOnlineGame() {
+    BaccaratAudio.playClick();
+    const input = document.getElementById('join-room-input');
+    if (!input || input.value.trim().length !== 4) {
+        alert("Masukkan 4 digit kode ruangan yang valid!");
+        return;
+    }
+    
+    const code = input.value.trim();
+    onlineRoomCode = code;
+    disconnectOnlineGame(); // Clean up existing
+    
+    updateOnlineStatus("Sedang menyambungkan ke " + code + "...", "connecting");
+    
+    isHost = false;
+    peer = new Peer(); // Client peer with random ID
+    
+    peer.on('open', () => {
+        conn = peer.connect(PEER_PREFIX + code);
+        setupConnection();
+    });
+    
+    peer.on('error', (err) => {
+        console.error("PeerJS error: ", err);
+        updateOnlineStatus("Gagal menyambung. Kode salah / ruangan tidak aktif.", "disconnected");
+    });
+}
+
+function disconnectOnlineGame() {
+    isConnected = false;
+    isHost = false;
+    
+    if (conn) {
+        conn.close();
+        conn = null;
+    }
+    if (peer) {
+        peer.destroy();
+        peer = null;
+    }
+    
+    const roomDisplay = document.getElementById('room-code-display');
+    if (roomDisplay) roomDisplay.style.display = 'none';
+    
+    const input = document.getElementById('join-room-input');
+    if (input) input.value = "";
+}
+
+function updateOnlineStatus(msg, state) {
+    const statusMsg = document.getElementById('online-status-msg');
+    const indicator = document.getElementById('online-indicator');
+    
+    if (statusMsg) statusMsg.textContent = msg;
+    if (indicator) {
+        indicator.className = "status-indicator"; // reset
+        if (state === 'connecting') indicator.classList.add('connecting');
+        else if (state === 'connected') indicator.classList.add('connected');
+    }
+}
+
+function setupConnection() {
+    conn.on('open', () => {
+        isConnected = true;
+        updateOnlineStatus("Lawan Terhubung! Permainan Dimulai.", "connected");
+        
+        // Reset game stats for both P1 and P2
+        player1Balance = 1000;
+        player2Balance = 1000;
+        activeBettor = 1; // P1 always shuffles/bets first
+        bState = B_STATE_BETTING;
+        
+        resetBaccaratMatch();
+        updateModeDashboardLabels();
+        updateBaccaratUI();
+    });
+    
+    conn.on('data', (data) => {
+        handleIncomingData(data);
+    });
+    
+    conn.on('close', () => {
+        isConnected = false;
+        updateOnlineStatus("Koneksi terputus. Lawan meninggalkan permainan.", "disconnected");
+        resetBaccaratMatch();
+    });
+    
+    conn.on('error', () => {
+        isConnected = false;
+        updateOnlineStatus("Koneksi error.", "disconnected");
+    });
+}
+
+function handleIncomingData(data) {
+    if (data.type === 'BET_UPDATE') {
+        // Sync active bets on screen
+        activeBets = data.bets;
+        updateBaccaratUI();
+    } 
+    else if (data.type === 'BET_LOCK') {
+        // Bettor locked bets, so Dealer can deal!
+        activeBets = data.bets;
+        updateBaccaratUI();
+        
+        // Unlock Bagi Kartu button for Dealer
+        const btnDeal = document.getElementById('btn-baccarat-deal');
+        if (btnDeal) {
+            btnDeal.disabled = false;
+            btnDeal.innerHTML = '<i data-lucide="shuffle"></i> Bagi Kartu';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    } 
+    else if (data.type === 'DEAL_CARDS') {
+        // Dealer deals cards, bettor receives cards to animate
+        playerCards = [];
+        bankerCards = [];
+        dealQueue = [];
+        activeCardInDeal = null;
+        
+        // Build the deal queue from indices
+        data.cards.forEach(cardData => {
+            const cardEntity = {
+                label: cardData.label,
+                suit: cardData.suit,
+                value: cardData.value,
+                side: cardData.side,
+                index: cardData.index,
+                x: 820,
+                y: 40,
+                targetX: cardData.targetX,
+                targetY: cardData.targetY,
+                isFaceUp: false,
+                scaleX: 1,
+                angle: 0,
+                speed: 0.12
+            };
+            dealQueue.push(cardEntity);
+        });
+        
+        bState = B_STATE_DEALING;
+        processNextDealQueue();
+    }
+    else if (data.type === 'ROUND_RESET') {
+        // Sync next round roles
+        activeBettor = data.nextBettor;
+        prepareNextRoundSync();
+    }
+    else if (data.type === 'MATCH_RESTART') {
+        resetBaccaratMatch();
+    }
+}
+
+/* ==========================================================================
    BACCARAT GAME RULES & CONTROLS
    ========================================================================== */
 function setupBaccaratControls() {
@@ -342,19 +642,40 @@ function setupBaccaratControls() {
     const btnClear = document.getElementById('btn-baccarat-clear');
     
     if (btnDeal) {
-        // Change text of Shake button to Deal / Bagi Kartu
-        btnDeal.innerHTML = '<i data-lucide="shuffle"></i> Bagi Kartu';
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-
         btnDeal.addEventListener('click', () => {
             if (bState === B_STATE_OVER) {
                 // Main Lagi logic
                 BaccaratAudio.playClick();
+                if (bMode === 'online') {
+                    conn.send({ type: 'MATCH_RESTART' });
+                }
                 resetBaccaratMatch();
                 return;
             }
             if (bState !== B_STATE_BETTING) return;
             
+            if (bMode === 'online') {
+                if (isMyTurnToBet()) {
+                    // We are Bettor clicking "Kunci Taruhan"
+                    let totalPlaced = Object.values(activeBets).reduce((a, b) => a + b, 0);
+                    if (totalPlaced <= 0) {
+                        alert("Pasang taruhan terlebih dahulu!");
+                        return;
+                    }
+                    BaccaratAudio.playClick();
+                    // Lock bets locally
+                    btnDeal.disabled = true;
+                    btnDeal.textContent = "Menunggu Dealer...";
+                    conn.send({ type: 'BET_LOCK', bets: activeBets });
+                } else {
+                    // We are Dealer clicking "Bagi Kartu"
+                    BaccaratAudio.playClick();
+                    startOnlineDealing();
+                }
+                return;
+            }
+            
+            // Solo/Local Dealing
             let totalPlaced = Object.values(activeBets).reduce((a, b) => a + b, 0);
             if (totalPlaced <= 0) {
                 alert("Pasang taruhan koin Anda di Player, Banker, atau Tie terlebih dahulu!");
@@ -376,54 +697,142 @@ function setupBaccaratControls() {
     }
 }
 
+function isMyTurnToBet() {
+    if (bMode !== 'online') return true;
+    if (!isConnected) return false;
+    return (isHost && activeBettor === 1) || (!isHost && activeBettor === 2);
+}
+
 function placeBaccaratBet(spotId) {
-    let betAmount = 0;
+    if (!isMyTurnToBet()) return;
     
+    let currentBal = playerBalance;
+    if (bMode === 'local' || bMode === 'online') {
+        currentBal = (activeBettor === 1) ? player1Balance : player2Balance;
+    }
+    
+    let betAmount = 0;
     if (selectedChipValue === 'all') {
-        betAmount = playerBalance;
+        betAmount = currentBal;
     } else {
         betAmount = selectedChipValue;
     }
     
-    if (betAmount > playerBalance) {
-        betAmount = playerBalance;
+    if (betAmount > currentBal) {
+        betAmount = currentBal;
     }
     
     if (betAmount <= 0) return;
     
-    playerBalance -= betAmount;
+    if (bMode === 'solo') {
+        playerBalance -= betAmount;
+    } else {
+        if (activeBettor === 1) player1Balance -= betAmount;
+        else player2Balance -= betAmount;
+    }
     activeBets[spotId] += betAmount;
     
     BaccaratAudio.playChipSound();
+    
+    if (bMode === 'online') {
+        conn.send({ type: 'BET_UPDATE', bets: activeBets });
+    }
+    
     updateBaccaratUI();
 }
 
 function clearBaccaratBets() {
+    if (!isMyTurnToBet()) return;
+    
     for (let spot in activeBets) {
-        playerBalance += activeBets[spot];
+        if (bMode === 'solo') {
+            playerBalance += activeBets[spot];
+        } else {
+            if (activeBettor === 1) player1Balance += activeBets[spot];
+            else player2Balance += activeBets[spot];
+        }
         activeBets[spot] = 0;
     }
+    
+    if (bMode === 'online') {
+        conn.send({ type: 'BET_UPDATE', bets: activeBets });
+    }
+    
     updateBaccaratUI();
 }
 
 function updateBaccaratUI() {
     const balanceEl = document.getElementById('baccarat-player-coin');
     const totalBetEl = document.getElementById('baccarat-current-bet');
-    const lastResultEl = document.getElementById('baccarat-last-outcome'); // Reused for last outcome
+    const lastResultEl = document.getElementById('baccarat-last-outcome');
     
-    if (balanceEl) balanceEl.textContent = playerBalance;
+    const btnDeal = document.getElementById('btn-baccarat-deal');
+    const btnClear = document.getElementById('btn-baccarat-clear');
+    
+    if (bMode === 'solo') {
+        if (balanceEl) balanceEl.textContent = playerBalance;
+        if (lastResultEl) {
+            lastResultEl.textContent = lastOutcomeText;
+            lastResultEl.className = "baccarat-stat-val";
+            if (lastOutcomeText.includes("PLAYER")) lastResultEl.classList.add("blue");
+            else if (lastOutcomeText.includes("BANKER")) lastResultEl.classList.add("red");
+            else if (lastOutcomeText.includes("TIE")) lastResultEl.classList.add("green");
+            else lastResultEl.classList.add("gold");
+        }
+        if (btnDeal && bState === B_STATE_BETTING) {
+            btnDeal.disabled = false;
+            btnDeal.innerHTML = '<i data-lucide="shuffle"></i> Bagi Kartu';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        if (btnClear && bState === B_STATE_BETTING) {
+            btnClear.disabled = false;
+        }
+    } 
+    else if (bMode === 'local') {
+        if (balanceEl) balanceEl.textContent = player1Balance;
+        if (lastResultEl) {
+            lastResultEl.textContent = player2Balance;
+            lastResultEl.className = "baccarat-stat-val red"; // banker is red
+        }
+        
+        if (btnDeal && bState === B_STATE_BETTING) {
+            btnDeal.disabled = false;
+            btnDeal.innerHTML = '<i data-lucide="shuffle"></i> Bagi Kartu';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        if (btnClear && bState === B_STATE_BETTING) {
+            btnClear.disabled = false;
+        }
+    } 
+    else if (bMode === 'online') {
+        if (balanceEl) balanceEl.textContent = player1Balance;
+        if (lastResultEl) {
+            lastResultEl.textContent = player2Balance;
+            lastResultEl.className = "baccarat-stat-val red";
+        }
+        
+        if (bState === B_STATE_BETTING) {
+            if (isMyTurnToBet()) {
+                if (btnClear) btnClear.disabled = false;
+                if (btnDeal) {
+                    const totalBet = Object.values(activeBets).reduce((a, b) => a + b, 0);
+                    btnDeal.disabled = (totalBet <= 0); // enabled if bet placed
+                    btnDeal.innerHTML = '<i data-lucide="check-square"></i> Kunci Taruhan';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            } else {
+                if (btnClear) btnClear.disabled = true;
+                if (btnDeal) {
+                    btnDeal.disabled = true; // wait for bet lock
+                    btnDeal.innerHTML = '<i data-lucide="shuffle"></i> Bagi Kartu';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            }
+        }
+    }
     
     const totalBet = Object.values(activeBets).reduce((a, b) => a + b, 0);
     if (totalBetEl) totalBetEl.textContent = totalBet;
-    
-    if (lastResultEl) {
-        lastResultEl.textContent = lastOutcomeText;
-        lastResultEl.className = "baccarat-stat-val"; // Reset
-        if (lastOutcomeText.includes("PLAYER")) lastResultEl.classList.add("blue");
-        else if (lastOutcomeText.includes("BANKER")) lastResultEl.classList.add("red");
-        else if (lastOutcomeText.includes("TIE")) lastResultEl.classList.add("green");
-        else lastResultEl.classList.add("gold");
-    }
     
     // Spot Labels
     for (let spot in activeBets) {
@@ -446,6 +855,9 @@ function updateBaccaratUI() {
 
 function resetBaccaratMatch() {
     playerBalance = 1000;
+    player1Balance = 1000;
+    player2Balance = 1000;
+    activeBettor = 1;
     activeBets = { [SPOT_PLAYER]: 0, [SPOT_TIE]: 0, [SPOT_BANKER]: 0 };
     playerCards = [];
     bankerCards = [];
@@ -459,10 +871,11 @@ function resetBaccaratMatch() {
     
     initCardShoe();
     updateBaccaratUI();
+    updateModeDashboardLabels();
     
     const btnDeal = document.getElementById('btn-baccarat-deal');
     if (btnDeal) {
-        btnDeal.disabled = false;
+        btnDeal.disabled = (bMode === 'online'); // online starts disabled for dealer
         btnDeal.innerHTML = '<i data-lucide="shuffle"></i> Bagi Kartu';
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
@@ -542,6 +955,91 @@ function startDealingPhase() {
     processNextDealQueue();
 }
 
+function startOnlineDealing() {
+    bState = B_STATE_DEALING;
+    playerCards = [];
+    bankerCards = [];
+    dealQueue = [];
+    activeCardInDeal = null;
+    
+    const btnDeal = document.getElementById('btn-baccarat-deal');
+    if (btnDeal) btnDeal.disabled = true;
+    
+    if (shoe.length < 16) {
+        initCardShoe();
+    }
+    
+    // Queue initial 4 cards (P1, B1, P2, B2)
+    queueCardToDeal('player', 0, 310, 150);
+    queueCardToDeal('banker', 0, 480, 150);
+    queueCardToDeal('player', 1, 375, 150);
+    queueCardToDeal('banker', 1, 545, 150);
+    
+    // Evaluate third card rules locally to populate the dealQueue completely!
+    evaluateThirdCardRulesLocally();
+    
+    // Send the complete deal queue to the client
+    const cardsData = dealQueue.map(c => ({
+        label: c.label,
+        suit: c.suit,
+        value: c.value,
+        side: c.side,
+        index: c.index,
+        targetX: c.targetX,
+        targetY: c.targetY
+    }));
+    
+    conn.send({ type: 'DEAL_CARDS', cards: cardsData });
+    
+    // Start animating deal locally
+    processNextDealQueue();
+}
+
+function evaluateThirdCardRulesLocally() {
+    // Simulate local scores to determine drawing rules
+    let initialP = [dealQueue[0], dealQueue[2]];
+    let initialB = [dealQueue[1], dealQueue[3]];
+    
+    let pScore = getHandScore(initialP);
+    let bScore = getHandScore(initialB);
+    
+    if (pScore >= 8 || bScore >= 8) {
+        return;
+    }
+    
+    let playerDrew3rd = false;
+    let player3rdCardVal = -1;
+    
+    if (pScore <= 5) {
+        queueCardToDeal('player', 2, 440, 240);
+        playerDrew3rd = true;
+        player3rdCardVal = dealQueue[dealQueue.length - 1].value;
+    }
+    
+    if (playerDrew3rd) {
+        let bankerDraws = false;
+        if (bScore <= 2) {
+            bankerDraws = true;
+        } else if (bScore === 3 && player3rdCardVal !== 8) {
+            bankerDraws = true;
+        } else if (bScore === 4 && [2, 3, 4, 5, 6, 7].includes(player3rdCardVal)) {
+            bankerDraws = true;
+        } else if (bScore === 5 && [4, 5, 6, 7].includes(player3rdCardVal)) {
+            bankerDraws = true;
+        } else if (bScore === 6 && [6, 7].includes(player3rdCardVal)) {
+            bankerDraws = true;
+        }
+        
+        if (bankerDraws) {
+            queueCardToDeal('banker', 2, 610, 240);
+        }
+    } else {
+        if (bScore <= 5) {
+            queueCardToDeal('banker', 2, 610, 240);
+        }
+    }
+}
+
 function queueCardToDeal(side, index, targetX, targetY) {
     const rawCard = shoe.pop();
     const cardEntity = {
@@ -568,8 +1066,11 @@ function processNextDealQueue() {
         BaccaratAudio.playCardSlide();
     } else {
         activeCardInDeal = null;
-        // Proceed to evaluation / third card logic
-        evaluateThirdCardRules();
+        if (bMode !== 'online') {
+            evaluateThirdCardRules();
+        } else {
+            triggerRevealPhase();
+        }
     }
 }
 
@@ -588,16 +1089,12 @@ function evaluateThirdCardRules() {
     let player3rdCardVal = -1;
     
     if (pScore <= 5) {
-        // Player draws 3rd card
-        queueCardToDeal('player', 2, 440, 240); // Drawn sideways or below
+        queueCardToDeal('player', 2, 440, 240);
         playerDrew3rd = true;
     }
     
     // 3. Banker Draw?
     if (playerDrew3rd) {
-        // If Player drew a third card, check Banker drawing table
-        // We look at player's third card value to determine Banker draw
-        // Let's resolve the actual card that will be dealt to the player
         const simulated3rdPlayerCard = dealQueue[0]; // Player's 3rd card is at the head of queue
         player3rdCardVal = simulated3rdPlayerCard.value;
         
@@ -618,14 +1115,12 @@ function evaluateThirdCardRules() {
             queueCardToDeal('banker', 2, 610, 240);
         }
     } else {
-        // If Player stood (6 or 7), Banker draws if score is 0-5
         if (bScore <= 5) {
             queueCardToDeal('banker', 2, 610, 240);
         }
     }
     
     if (dealQueue.length > 0) {
-        // Continue deal animations for third cards
         processNextDealQueue();
     } else {
         triggerRevealPhase();
@@ -671,54 +1166,124 @@ function calculateRoundResults() {
     
     if (roundWinner === SPOT_PLAYER) {
         if (playerBetAmount > 0) {
-            totalWin += playerBetAmount * 2; // Return original + 1:1 win
+            totalWin += playerBetAmount * 2;
         }
-        // Banker and Tie bets are lost
         BaccaratAudio.playWin();
     } else if (roundWinner === SPOT_BANKER) {
         if (bankerBetAmount > 0) {
-            // Standard Banker pays 0.95:1 (house 5% commission)
             totalWin += bankerBetAmount * 1.95;
         }
-        // Player and Tie bets are lost
         BaccaratAudio.playWin();
     } else if (roundWinner === SPOT_TIE) {
         if (tieBetAmount > 0) {
-            totalWin += tieBetAmount * 9; // Return original + 8:1 win
+            totalWin += tieBetAmount * 9;
         }
-        // TIE RULE: Player and Banker bets are PUSHED (returned to player balance!)
         totalWin += playerBetAmount;
         totalWin += bankerBetAmount;
-        
         BaccaratAudio.playTie();
     }
     
     const netGains = totalWin - (playerBetAmount + bankerBetAmount + tieBetAmount);
-    playerBalance += totalWin;
+    
+    if (bMode === 'solo') {
+        playerBalance += totalWin;
+    } else {
+        if (activeBettor === 1) player1Balance += totalWin;
+        else player2Balance += totalWin;
+    }
     
     if (netGains > 0) {
         winLossNetMessage = `Hasil: Anda menang +${netGains} Koin!`;
+        if (bMode === 'online' && !isMyTurnToBet()) {
+            winLossNetMessage = `Hasil: Lawan menang +${netGains} Koin!`;
+        }
     } else if (netGains < 0) {
         winLossNetMessage = `Hasil: Anda kalah ${Math.abs(netGains)} Koin!`;
+        if (bMode === 'online' && !isMyTurnToBet()) {
+            winLossNetMessage = `Hasil: Lawan kalah ${Math.abs(netGains)} Koin!`;
+        }
     } else {
         winLossNetMessage = `Hasil: Balik Modal (Push / Seri)!`;
         if (netGains === 0 && (playerBetAmount > 0 || bankerBetAmount > 0 || tieBetAmount > 0) && roundWinner !== SPOT_TIE) {
             winLossNetMessage = `Hasil: Kalah Taruhan!`;
+            if (bMode === 'online' && !isMyTurnToBet()) {
+                winLossNetMessage = `Hasil: Lawan kalah taruhan!`;
+            }
             BaccaratAudio.playLose();
         }
     }
     
-    // Clear bets
-    activeBets = { [SPOT_PLAYER]: 0, [SPOT_TIE]: 0, [SPOT_BANKER]: 0 };
+    // Clear bets for local & solo. Online cleared in prepareNextRound
+    if (bMode !== 'online') {
+        activeBets = { [SPOT_PLAYER]: 0, [SPOT_TIE]: 0, [SPOT_BANKER]: 0 };
+    }
     updateBaccaratUI();
     
     // Check bankruptcy
-    if (playerBalance <= 0) {
-        bState = B_STATE_OVER;
+    if (bMode === 'solo') {
+        if (playerBalance <= 0) {
+            bState = B_STATE_OVER;
+        } else {
+            bState = B_STATE_PAYOUT;
+            payoutTimer = 180;
+        }
     } else {
-        bState = B_STATE_PAYOUT;
-        payoutTimer = 180; // 3 seconds display
+        if (player1Balance <= 0) {
+            bState = B_STATE_OVER;
+            winnerAnnouncement = "PLAYER 1 BANGKRUT! PLAYER 2 MENANG MATCH!";
+        } else if (player2Balance <= 0) {
+            bState = B_STATE_OVER;
+            winnerAnnouncement = "PLAYER 2 BANGKRUT! PLAYER 1 MENANG MATCH!";
+        } else {
+            bState = B_STATE_PAYOUT;
+            payoutTimer = 180;
+        }
     }
+}
+
+function prepareNextRound() {
+    bState = B_STATE_BETTING;
+    activeBets = { [SPOT_PLAYER]: 0, [SPOT_TIE]: 0, [SPOT_BANKER]: 0 };
+    
+    playerCards = [];
+    bankerCards = [];
+    dealQueue = [];
+    activeCardInDeal = null;
+    
+    if (bMode === 'local') {
+        activeBettor = activeBettor === 1 ? 2 : 1;
+    } 
+    else if (bMode === 'online' && isConnected) {
+        const nextBettor = activeBettor === 1 ? 2 : 1;
+        if (isHost) {
+            activeBettor = nextBettor;
+            conn.send({ type: 'ROUND_RESET', nextBettor: nextBettor });
+        }
+    }
+    
+    updateBaccaratUI();
+    
+    const btnDeal = document.getElementById('btn-baccarat-deal');
+    const btnClear = document.getElementById('btn-baccarat-clear');
+    if (btnDeal) btnDeal.disabled = (bMode === 'online' && !isMyTurnToBet());
+    if (btnClear) btnClear.disabled = (bMode === 'online' && !isMyTurnToBet());
+}
+
+function prepareNextRoundSync() {
+    bState = B_STATE_BETTING;
+    activeBets = { [SPOT_PLAYER]: 0, [SPOT_TIE]: 0, [SPOT_BANKER]: 0 };
+    
+    playerCards = [];
+    bankerCards = [];
+    dealQueue = [];
+    activeCardInDeal = null;
+    
+    updateBaccaratUI();
+    
+    const btnDeal = document.getElementById('btn-baccarat-deal');
+    const btnClear = document.getElementById('btn-baccarat-clear');
+    if (btnDeal) btnDeal.disabled = (bMode === 'online' && !isMyTurnToBet());
+    if (btnClear) btnClear.disabled = (bMode === 'online' && !isMyTurnToBet());
 }
 
 /* ==========================================================================
@@ -742,28 +1307,23 @@ function updateBaccaratPhysics() {
     // 1. Handle Deal card animations
     if (bState === B_STATE_DEALING || activeCardInDeal !== null) {
         if (activeCardInDeal) {
-            // Interpolate position
             activeCardInDeal.x += (activeCardInDeal.targetX - activeCardInDeal.x) * activeCardInDeal.speed;
             activeCardInDeal.y += (activeCardInDeal.targetY - activeCardInDeal.y) * activeCardInDeal.speed;
             
-            // Check if card has arrived close enough
             const dist = Math.sqrt(Math.pow(activeCardInDeal.targetX - activeCardInDeal.x, 2) + Math.pow(activeCardInDeal.targetY - activeCardInDeal.y, 2));
             if (dist < 2) {
                 activeCardInDeal.x = activeCardInDeal.targetX;
                 activeCardInDeal.y = activeCardInDeal.targetY;
                 
-                // Flip card animation starts
                 activeCardInDeal.isFaceUp = true;
                 BaccaratAudio.playCardFlip();
                 
-                // Add card to player/banker hand arrays
                 if (activeCardInDeal.side === 'player') {
                     playerCards.push(activeCardInDeal);
                 } else {
                     bankerCards.push(activeCardInDeal);
                 }
                 
-                // Process next in queue
                 processNextDealQueue();
             }
         }
@@ -781,11 +1341,7 @@ function updateBaccaratPhysics() {
     if (bState === B_STATE_PAYOUT) {
         payoutTimer--;
         if (payoutTimer <= 0) {
-            bState = B_STATE_BETTING;
-            const btnDeal = document.getElementById('btn-baccarat-deal');
-            const btnClear = document.getElementById('btn-baccarat-clear');
-            if (btnDeal) btnDeal.disabled = false;
-            if (btnClear) btnClear.disabled = false;
+            prepareNextRound();
         }
     }
 }
@@ -794,19 +1350,15 @@ function renderBaccaratTable() {
     bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
     
     // 1. Table velvet split design
-    // Left half (Blue / Player side)
     bCtx.fillStyle = '#060f21';
     bCtx.fillRect(0, 0, bCanvas.width / 2, bCanvas.height);
     
-    // Right half (Red / Banker side)
     bCtx.fillStyle = '#210609';
     bCtx.fillRect(bCanvas.width / 2, 0, bCanvas.width / 2, bCanvas.height);
     
-    // Center divider
     bCtx.fillStyle = 'rgba(251, 191, 36, 0.4)';
     bCtx.fillRect(bCanvas.width / 2 - 2, 10, 4, bCanvas.height - 20);
     
-    // Gold borders around velvet table
     bCtx.strokeStyle = '#fbbf24';
     bCtx.lineWidth = 4;
     bCtx.strokeRect(10, 10, bCanvas.width - 20, bCanvas.height - 20);
@@ -846,7 +1398,6 @@ function renderBaccaratTable() {
     playerCards.forEach(card => drawCard(card));
     bankerCards.forEach(card => drawCard(card));
     
-    // Draw the active sliding card
     if (activeCardInDeal) {
         drawCard(activeCardInDeal);
     }
@@ -864,24 +1415,24 @@ function renderBaccaratTable() {
     // 6. Draw Bead Plate Roadmap (Left side grid)
     drawBeadPlateRoadmap();
     
-    // 7. Draw State over / payout banners
+    // 7. Draw Turn Indicators (Local or Online 1v1)
+    drawTurnIndicators();
+    
+    // 8. Draw State over / payout banners
     drawBaccaratBanners();
 }
 
 function drawCardShoeUI() {
     bCtx.save();
-    // Shadow
     bCtx.fillStyle = 'rgba(0,0,0,0.5)';
     bCtx.fillRect(812, 28, 44, 64);
     
-    // Shoe body
     bCtx.fillStyle = '#1e293b';
     bCtx.fillRect(810, 25, 40, 60);
     bCtx.strokeStyle = '#fbbf24';
     bCtx.lineWidth = 2;
     bCtx.strokeRect(810, 25, 40, 60);
     
-    // Cards inside shoe pattern
     bCtx.fillStyle = '#ef4444';
     bCtx.fillRect(815, 30, 30, 50);
     bCtx.fillStyle = '#fff';
@@ -897,12 +1448,10 @@ function drawCard(card) {
     const cardWidth = 54;
     const cardHeight = 82;
     
-    // Card Shadow
     bCtx.fillStyle = 'rgba(0,0,0,0.3)';
     bCtx.fillRect(-cardWidth/2 + 2, -cardHeight/2 + 2, cardWidth, cardHeight);
     
     if (card.isFaceUp) {
-        // Face up: Card front
         bCtx.fillStyle = '#ffffff';
         bCtx.fillRect(-cardWidth/2, -cardHeight/2, cardWidth, cardHeight);
         
@@ -910,17 +1459,14 @@ function drawCard(card) {
         bCtx.lineWidth = 1.5;
         bCtx.strokeRect(-cardWidth/2, -cardHeight/2, cardWidth, cardHeight);
         
-        // Colors: red for hearts/diamonds, black for clubs/spades
         const isRed = ['hearts', 'diamonds'].includes(card.suit);
         bCtx.fillStyle = isRed ? '#ef4444' : '#0f172a';
         bCtx.font = 'bold 16px Courier New, monospace';
         bCtx.textAlign = 'left';
         bCtx.textBaseline = 'top';
         
-        // Label (Top-Left)
         bCtx.fillText(card.label, -cardWidth/2 + 4, -cardHeight/2 + 4);
         
-        // Suit Icon (Center of card)
         bCtx.font = '22px Courier New, monospace';
         bCtx.textAlign = 'center';
         bCtx.textBaseline = 'middle';
@@ -931,7 +1477,6 @@ function drawCard(card) {
         
         bCtx.fillText(suitChar, 0, 5);
         
-        // Label (Bottom-Right, inverted)
         bCtx.save();
         bCtx.rotate(Math.PI);
         bCtx.font = 'bold 16px Courier New, monospace';
@@ -940,15 +1485,13 @@ function drawCard(card) {
         bCtx.fillText(card.label, -cardWidth/2 + 4, -cardHeight/2 + 4);
         bCtx.restore();
     } else {
-        // Face down: Card back
-        bCtx.fillStyle = '#7f1d1d'; // luxury deep red pattern
+        bCtx.fillStyle = '#7f1d1d';
         bCtx.fillRect(-cardWidth/2, -cardHeight/2, cardWidth, cardHeight);
         
-        bCtx.strokeStyle = '#fbbf24'; // gold border
+        bCtx.strokeStyle = '#fbbf24';
         bCtx.lineWidth = 2.5;
         bCtx.strokeRect(-cardWidth/2, -cardHeight/2, cardWidth, cardHeight);
         
-        // Cross pattern inside back
         bCtx.strokeStyle = 'rgba(251, 191, 36, 0.3)';
         bCtx.lineWidth = 1.5;
         bCtx.beginPath();
@@ -970,7 +1513,6 @@ function drawScoreBadge(score, x, y, color) {
     bCtx.arc(x, y, 20, 0, Math.PI * 2);
     bCtx.fill();
     
-    // Label score text
     bCtx.fillStyle = '#ffffff';
     bCtx.shadowBlur = 0;
     bCtx.font = 'bold 16px monospace';
@@ -991,11 +1533,9 @@ function drawBeadPlateRoadmap() {
     bCtx.save();
     bCtx.shadowBlur = 0;
     
-    // Draw grid background
     bCtx.fillStyle = 'rgba(15, 23, 42, 0.6)';
     bCtx.fillRect(startX, startY, cols * cellWidth, rows * cellHeight);
     
-    // Draw grid lines
     bCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     bCtx.lineWidth = 1;
     for (let r = 0; r <= rows; r++) {
@@ -1011,7 +1551,6 @@ function drawBeadPlateRoadmap() {
         bCtx.stroke();
     }
     
-    // Draw cells outcomes
     roadmapHistory.forEach((outcome, idx) => {
         const col = Math.floor(idx / rows);
         const row = idx % rows;
@@ -1038,7 +1577,6 @@ function drawBeadPlateRoadmap() {
         bCtx.fillStyle = circleColor;
         bCtx.fill();
         
-        // Draw outcome character inside circle
         bCtx.fillStyle = '#ffffff';
         bCtx.font = 'bold 9px Arial, sans-serif';
         bCtx.textAlign = 'center';
@@ -1046,7 +1584,6 @@ function drawBeadPlateRoadmap() {
         bCtx.fillText(labelChar, cx, cy);
     });
     
-    // Roadmap title tag
     bCtx.fillStyle = '#fbbf24';
     bCtx.font = 'bold 9px monospace';
     bCtx.textAlign = 'left';
@@ -1055,8 +1592,44 @@ function drawBeadPlateRoadmap() {
     bCtx.restore();
 }
 
+function drawTurnIndicators() {
+    if (bState !== B_STATE_BETTING) return;
+    
+    if (bMode === 'local') {
+        bCtx.save();
+        bCtx.fillStyle = 'rgba(0,0,0,0.65)';
+        bCtx.fillRect(160, 20, 560, 42);
+        bCtx.strokeStyle = '#fbbf24';
+        bCtx.lineWidth = 1.5;
+        bCtx.strokeRect(160, 20, 560, 42);
+        
+        bCtx.fillStyle = '#fff';
+        bCtx.font = '900 12px monospace';
+        bCtx.textAlign = 'center';
+        bCtx.fillText(`PLAYER ${activeBettor} PASANG TARUHAN! PLAYER ${activeBettor === 1 ? 2 : 1} KLIK BAGI KARTU.`, 440, 41);
+        bCtx.restore();
+    } 
+    else if (bMode === 'online' && isConnected) {
+        const myTurn = isMyTurnToBet();
+        const text = myTurn ? "GILIRAN ANDA PASANG TARUHAN! LAWAN AKAN MEMBAGI KARTU." : "MENUNGGU LAWAN PASANG TARUHAN... ANDA ADALAH DEALER.";
+        const accent = myTurn ? '#3b82f6' : '#ef4444';
+        
+        bCtx.save();
+        bCtx.fillStyle = 'rgba(0,0,0,0.65)';
+        bCtx.fillRect(160, 20, 560, 42);
+        bCtx.strokeStyle = accent;
+        bCtx.lineWidth = 1.5;
+        bCtx.strokeRect(160, 20, 560, 42);
+        
+        bCtx.fillStyle = '#fff';
+        bCtx.font = '900 12px monospace';
+        bCtx.textAlign = 'center';
+        bCtx.fillText(text, 440, 41);
+        bCtx.restore();
+    }
+}
+
 function drawBaccaratBanners() {
-    // 1. Shaking notice
     if (bState === B_STATE_DEALING) {
         bCtx.fillStyle = 'rgba(0,0,0,0.6)';
         bCtx.fillRect(250, 20, 380, 40);
@@ -1068,7 +1641,6 @@ function drawBaccaratBanners() {
         bCtx.textAlign = 'center';
         bCtx.fillText("KARTU SEDANG DIBAGIKAN...", 440, 40);
     } 
-    // 2. Reveal result display
     else if (bState === B_STATE_REVEAL) {
         bCtx.fillStyle = 'rgba(0,0,0,0.8)';
         bCtx.fillRect(250, 20, 380, 40);
@@ -1080,7 +1652,6 @@ function drawBaccaratBanners() {
         bCtx.textAlign = 'center';
         bCtx.fillText("MENGEVALUASI PEMENANG...", 440, 40);
     } 
-    // 3. Payout summary card
     else if (bState === B_STATE_PAYOUT) {
         let accentColor = '#fbbf24';
         if (roundWinner === SPOT_PLAYER) accentColor = '#3b82f6';
@@ -1106,7 +1677,6 @@ function drawBaccaratBanners() {
         bCtx.fillText(winLossNetMessage, 440, 285);
         bCtx.restore();
     } 
-    // 4. Bankrupt Game Over Overlay
     else if (bState === B_STATE_OVER) {
         bCtx.save();
         bCtx.shadowBlur = 20;
@@ -1120,20 +1690,18 @@ function drawBaccaratBanners() {
         bCtx.fillStyle = '#ef4444';
         bCtx.font = '900 32px Outfit, sans-serif';
         bCtx.textAlign = 'center';
-        bCtx.fillText("ANDA BANGKRUT!", 440, 155);
+        bCtx.fillText("MATCH SELESAI!", 440, 155);
         
         bCtx.fillStyle = '#fff';
-        bCtx.font = 'bold 20px Outfit, sans-serif';
-        bCtx.fillText("SALDO VIRTUAL ANDA TELAH HABIS", 440, 205);
+        bCtx.font = 'bold 18px Outfit, sans-serif';
+        bCtx.fillText(winnerAnnouncement.toUpperCase(), 440, 205);
         
-        // Show restart instructions
         bCtx.fillStyle = '#71717a';
         bCtx.font = '12px monospace';
         bCtx.fillText("SILAKAN KLIK TOMBOL 'MAIN LAGI' DI BAWAH UNTUK MERESET SALDO", 440, 250);
         
         bCtx.restore();
         
-        // Force reset match on click "Main Lagi" (Reset button in UI handles it)
         const btnReset = document.getElementById('btn-baccarat-deal');
         if (btnReset) btnReset.textContent = "Main Lagi";
     }

@@ -794,6 +794,46 @@
                 </button>
             </div>
             
+            <!-- Mode Selector Bar -->
+            <div class="baccarat-mode-container">
+                <button class="baccarat-mode-btn active" id="btn-baccarat-mode-solo">Solo vs House</button>
+                <button class="baccarat-mode-btn" id="btn-baccarat-mode-local">Lokal 1v1</button>
+                <button class="baccarat-mode-btn" id="btn-baccarat-mode-online">Online 1v1</button>
+            </div>
+            
+            <!-- Online Setup Panel (Hidden by default) -->
+            <div class="baccarat-online-setup" id="baccarat-online-setup" style="display: none;">
+                <div class="online-setup-panel">
+                    <!-- Host Actions -->
+                    <div class="setup-col host-col">
+                        <button class="baccarat-btn baccarat-btn-online-action" id="btn-online-host">
+                            <i data-lucide="home"></i> Buat Ruangan (Host)
+                        </button>
+                        <div class="room-code-display" id="room-code-display" style="display: none;">
+                            <span>Kode Ruangan Anda:</span>
+                            <span class="code-val" id="host-code-val">----</span>
+                        </div>
+                    </div>
+                    
+                    <div class="setup-divider">atau</div>
+                    
+                    <!-- Join Actions -->
+                    <div class="setup-col join-col">
+                        <div class="join-input-group">
+                            <input type="text" id="join-room-input" placeholder="Masukkan 4 digit kode" maxlength="4">
+                            <button class="baccarat-btn baccarat-btn-online-action" id="btn-online-join">
+                                <i data-lucide="arrow-right-circle"></i> Sambungkan (Join)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Connection Status -->
+                <div class="online-status-bar" id="online-status-bar">
+                    <span class="status-indicator" id="online-indicator"></span>
+                    <span class="status-msg" id="online-status-msg">Tidak Terhubung</span>
+                </div>
+            </div>
+            
             <!-- Game Canvas area -->
             <div class="baccarat-viewport">
                 <canvas id="baccarat-canvas"></canvas>
@@ -802,15 +842,15 @@
             <!-- Dashboard (Coins / Current Bet) -->
             <div class="baccarat-dashboard">
                 <div class="baccarat-stat-card">
-                    <span class="baccarat-stat-label">Saldo Anda</span>
+                    <span class="baccarat-stat-label" id="label-player-coin">Saldo Anda</span>
                     <span class="baccarat-stat-val blue" id="baccarat-player-coin">1000</span>
                 </div>
                 <div class="baccarat-stat-card">
-                    <span class="baccarat-stat-label">Total Taruhan</span>
+                    <span class="baccarat-stat-label" id="label-current-bet">Total Taruhan</span>
                     <span class="baccarat-stat-val gold" id="baccarat-current-bet">0</span>
                 </div>
                 <div class="baccarat-stat-card">
-                    <span class="baccarat-stat-label">Hasil Terakhir</span>
+                    <span class="baccarat-stat-label" id="label-last-outcome">Hasil Terakhir</span>
                     <span class="baccarat-stat-val green" id="baccarat-last-outcome">BELUM ADA</span>
                 </div>
             </div>
