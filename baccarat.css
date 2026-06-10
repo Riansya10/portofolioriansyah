@@ -1,15 +1,15 @@
 /* ==========================================================================
-   KOPROK COIN BOWL STYLESHEET (koprok.css)
+   BACCARAT ROYALE STYLESHEET (baccarat.css)
    ========================================================================== */
 
 /* Game Modal Overlay */
-.koprok-modal {
+.baccarat-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(8, 12, 20, 0.9);
+    background: rgba(8, 12, 20, 0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     z-index: 2000;
@@ -21,28 +21,28 @@
     padding: 20px;
 }
 
-.koprok-modal.show {
+.baccarat-modal.show {
     display: flex;
     opacity: 1;
 }
 
 /* Modal Content Container */
-.koprok-modal-content {
+.baccarat-modal-content {
     position: relative;
-    background: #0d1117;
-    border: 2px solid #eab308; /* Golden border */
-    box-shadow: 0 0 30px rgba(234, 179, 8, 0.35), inset 0 0 15px rgba(0, 0, 0, 0.6);
+    background: #090d16;
+    border: 2px solid #fbbf24; /* Golden border */
+    box-shadow: 0 0 35px rgba(251, 191, 36, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8);
     border-radius: 12px;
     width: 100%;
-    max-width: 900px;
+    max-width: 950px;
     max-height: 95vh; /* Prevent vertical overflow */
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    animation: koprok-modal-zoom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: baccarat-modal-zoom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes koprok-modal-zoom {
+@keyframes baccarat-modal-zoom {
     from {
         transform: scale(0.85) translateY(30px);
         opacity: 0;
@@ -54,7 +54,7 @@
 }
 
 /* Close Button */
-.koprok-modal-close {
+.baccarat-modal-close {
     position: absolute;
     top: 15px;
     right: 15px;
@@ -72,7 +72,7 @@
     transition: all 0.2s ease;
 }
 
-.koprok-modal-close:hover {
+.baccarat-modal-close:hover {
     background: #ef4444;
     color: white;
     border-color: #ef4444;
@@ -80,7 +80,7 @@
 }
 
 /* Fullscreen Toggle Button */
-.koprok-fullscreen-btn {
+.baccarat-fullscreen-btn {
     margin-left: auto;
     margin-right: 45px; /* Leave space for absolute close button */
     background: rgba(255, 255, 255, 0.05);
@@ -96,22 +96,22 @@
     transition: all 0.2s ease;
 }
 
-.koprok-fullscreen-btn:hover {
-    background: #eab308;
+.baccarat-fullscreen-btn:hover {
+    background: #fbbf24;
     color: #000;
-    border-color: #eab308;
+    border-color: #fbbf24;
     transform: scale(1.05);
 }
 
-.koprok-fullscreen-btn i {
+.baccarat-fullscreen-btn i {
     width: 18px;
     height: 18px;
     pointer-events: none;
 }
 
 /* Game Header / Bar */
-.koprok-modal-header {
-    background: #090d16;
+.baccarat-modal-header {
+    background: #070a0f;
     padding: 15px 25px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
@@ -119,7 +119,7 @@
     gap: 12px;
 }
 
-.koprok-title-text {
+.baccarat-title-text {
     font-family: 'Outfit', sans-serif;
     font-weight: 800;
     font-size: 18px;
@@ -131,21 +131,21 @@
     gap: 8px;
 }
 
-.koprok-title-tag {
-    background: rgba(234, 179, 8, 0.15);
-    color: #eab308;
+.baccarat-title-tag {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
     font-size: 11px;
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 4px;
-    border: 1px solid rgba(234, 179, 8, 0.2);
+    border: 1px solid rgba(251, 191, 36, 0.2);
 }
 
 /* Main Playing Viewport */
-.koprok-viewport {
+.baccarat-viewport {
     position: relative;
     width: 100%;
-    background: #141923;
+    background: #080d16;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -156,7 +156,7 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-#koprok-canvas {
+#baccarat-canvas {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
@@ -164,17 +164,17 @@
 }
 
 /* Dashboard Panel (Stats/Balances) */
-.koprok-dashboard {
+.baccarat-dashboard {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    background: #090d16;
-    padding: 12px 20px;
+    background: #070a0f;
+    padding: 10px 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     gap: 15px;
 }
 
-.koprok-stat-card {
+.baccarat-stat-card {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 8px;
@@ -184,7 +184,7 @@
     box-shadow: 0 4px 6px rgba(0,0,0,0.15);
 }
 
-.koprok-stat-label {
+.baccarat-stat-label {
     font-size: 11px;
     font-weight: 600;
     color: #9ca3af;
@@ -194,55 +194,55 @@
     margin-bottom: 4px;
 }
 
-.koprok-stat-val {
+.baccarat-stat-val {
     font-family: monospace;
     font-size: 18px;
     font-weight: 800;
     color: #fff;
 }
 
-.koprok-stat-val.gold {
-    color: #fbbf24;
-    text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
-}
-
-.koprok-stat-val.blue {
+.baccarat-stat-val.blue {
     color: #3b82f6;
     text-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
 }
 
-.koprok-stat-val.red {
-    color: #ef4444;
-    text-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+.baccarat-stat-val.gold {
+    color: #fbbf24;
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+}
+
+.baccarat-stat-val.green {
+    color: #10b981;
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
 }
 
 /* Betting Board Section */
-.koprok-betting-area {
-    background: #070a0f;
+.baccarat-betting-area {
+    background: #05070a;
     padding: 20px 25px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
-.koprok-board-title {
+.baccarat-board-title {
     font-size: 11px;
     font-weight: 700;
-    color: #9ca3af;
+    color: #6b7280;
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
 
 /* Grid of Betting Spots */
-.koprok-grid-board {
+.baccarat-grid-board {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 2fr 1.5fr 2fr;
     gap: 12px;
 }
 
-.koprok-bet-spot {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1.5px dashed rgba(255, 255, 255, 0.12);
+.baccarat-bet-spot {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1.5px dashed rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     padding: 12px 6px;
     text-align: center;
@@ -254,61 +254,81 @@
     overflow: hidden;
 }
 
-.koprok-bet-spot.spot-blue {
+/* Spot Customizations */
+.baccarat-bet-spot.spot-player {
     border-color: rgba(59, 130, 246, 0.25);
 }
-.koprok-bet-spot.spot-blue:hover {
+.baccarat-bet-spot.spot-player:hover {
     border-color: rgba(59, 130, 246, 0.6);
-    background: rgba(59, 130, 246, 0.03);
+    background: rgba(59, 130, 246, 0.02);
 }
-.koprok-bet-spot.spot-blue.selected {
+.baccarat-bet-spot.spot-player.selected {
     border-color: #3b82f6;
-    background: rgba(59, 130, 246, 0.1);
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.35);
+    background: rgba(59, 130, 246, 0.08);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
 }
-.koprok-bet-spot.spot-blue .koprok-spot-title {
+.baccarat-bet-spot.spot-player .baccarat-spot-title {
     color: #60a5fa;
 }
-.koprok-bet-spot.spot-blue .koprok-spot-odds {
+.baccarat-bet-spot.spot-player .baccarat-spot-odds {
     color: #93c5fd;
 }
 
-.koprok-bet-spot.spot-red {
+.baccarat-bet-spot.spot-tie {
+    border-color: rgba(16, 185, 129, 0.25);
+}
+.baccarat-bet-spot.spot-tie:hover {
+    border-color: rgba(16, 185, 129, 0.6);
+    background: rgba(16, 185, 129, 0.02);
+}
+.baccarat-bet-spot.spot-tie.selected {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.08);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+.baccarat-bet-spot.spot-tie .baccarat-spot-title {
+    color: #34d399;
+}
+.baccarat-bet-spot.spot-tie .baccarat-spot-odds {
+    color: #a7f3d0;
+}
+
+.baccarat-bet-spot.spot-banker {
     border-color: rgba(239, 68, 68, 0.25);
 }
-.koprok-bet-spot.spot-red:hover {
+.baccarat-bet-spot.spot-banker:hover {
     border-color: rgba(239, 68, 68, 0.6);
-    background: rgba(239, 68, 68, 0.03);
+    background: rgba(239, 68, 68, 0.02);
 }
-.koprok-bet-spot.spot-red.selected {
+.baccarat-bet-spot.spot-banker.selected {
     border-color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
-    box-shadow: 0 0 15px rgba(239, 68, 68, 0.35);
+    background: rgba(239, 68, 68, 0.08);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
 }
-.koprok-bet-spot.spot-red .koprok-spot-title {
+.baccarat-bet-spot.spot-banker .baccarat-spot-title {
     color: #f87171;
 }
-.koprok-bet-spot.spot-red .koprok-spot-odds {
+.baccarat-bet-spot.spot-banker .baccarat-spot-odds {
     color: #fca5a5;
 }
 
-.koprok-spot-title {
+.baccarat-spot-title {
     font-family: 'Outfit', sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 800;
-    color: #f3f4f6;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-.koprok-spot-odds {
+.baccarat-spot-odds {
     font-size: 10px;
     font-weight: 700;
-    color: #10b981; /* Green odds */
     display: block;
 }
 
-.koprok-spot-mybet {
+.baccarat-spot-mybet {
     font-family: monospace;
     font-size: 12px;
     font-weight: bold;
@@ -316,10 +336,11 @@
     margin-top: 6px;
     display: block;
     height: 18px; /* reserve space */
+    text-shadow: 0 0 5px rgba(251, 191, 36, 0.2);
 }
 
 /* Chips Control Panel */
-.koprok-chips-panel {
+.baccarat-chips-panel {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -327,42 +348,42 @@
     margin-top: 5px;
 }
 
-.koprok-chips-group {
+.baccarat-chips-group {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 /* Chip Design */
-.koprok-chip {
-    width: 48px;
-    height: 48px;
+.baccarat-chip {
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
     border: 3px dashed;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: monospace;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 900;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     user-select: none;
-    background: #111827;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    background: #0f172a;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.4);
 }
 
 .chip-10 { border-color: #3b82f6; color: #3b82f6; }
 .chip-50 { border-color: #ec4899; color: #ec4899; }
 .chip-100 { border-color: #10b981; color: #10b981; }
 .chip-500 { border-color: #fb923c; color: #fb923c; }
-.chip-all { border-color: #ef4444; color: #ef4444; border-style: double; width: 50px; height: 50px; }
+.chip-all { border-color: #ef4444; color: #ef4444; border-style: double; width: 48px; height: 48px; }
 
-.koprok-chip:hover {
+.baccarat-chip:hover {
     transform: scale(1.1) rotate(15deg);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.5);
 }
 
-.koprok-chip.selected {
+.baccarat-chip.selected {
     transform: scale(1.15) rotate(0deg);
     background: #fff;
     border-style: solid;
@@ -375,13 +396,13 @@
 .chip-500.selected { color: #7c2d12; }
 .chip-all.selected { color: #7f1d1d; }
 
-/* Control Buttons (Shake/Reset) */
-.koprok-btn-group {
+/* Control Buttons (Deal/Clear) */
+.baccarat-btn-group {
     display: flex;
     gap: 12px;
 }
 
-.koprok-btn {
+.baccarat-btn {
     padding: 10px 24px;
     font-family: 'Outfit', sans-serif;
     font-weight: 700;
@@ -397,39 +418,44 @@
     gap: 8px;
 }
 
-.koprok-btn-shake {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+.baccarat-btn-deal {
+    background: linear-gradient(135deg, #fbbf24, #d97706);
     color: #000;
     font-weight: 800;
-    box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.25);
 }
 
-.koprok-btn-shake:hover:not(:disabled) {
+.baccarat-btn-deal:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.45);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.45);
 }
 
-.koprok-btn-shake:disabled {
-    background: #27272a;
-    color: #71717a;
+.baccarat-btn-deal:disabled {
+    background: #1f2937;
+    color: #4b5563;
     cursor: not-allowed;
     box-shadow: none;
 }
 
-.koprok-btn-reset {
+.baccarat-btn-clear {
     background: transparent;
-    border: 1.5px solid rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
     color: #9ca3af;
 }
 
-.koprok-btn-reset:hover {
+.baccarat-btn-clear:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.05);
     color: #fff;
     border-color: rgba(255, 255, 255, 0.3);
 }
 
+.baccarat-btn-clear:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Fullscreen mode styling */
-.koprok-modal-content:fullscreen {
+.baccarat-modal-content:fullscreen {
     width: 100vw !important;
     height: 100vh !important;
     max-width: 100vw !important;
@@ -437,74 +463,75 @@
     border-radius: 0 !important;
     border: none !important;
     box-shadow: none !important;
-    background: #070a0f !important;
+    background: #05070a !important;
     display: flex !important;
     flex-direction: column !important;
 }
 
-.koprok-modal-content:fullscreen .koprok-viewport {
+.baccarat-modal-content:fullscreen .baccarat-viewport {
     flex: 1 !important;
     aspect-ratio: auto !important;
 }
 
-.koprok-modal-content:fullscreen #koprok-canvas {
+.baccarat-modal-content:fullscreen #baccarat-canvas {
     width: auto !important;
     height: auto !important;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .koprok-grid-board {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+    .baccarat-grid-board {
+        grid-template-columns: 1fr;
+        gap: 8px;
     }
     
-    .koprok-chips-panel {
+    .baccarat-chips-panel {
         flex-direction: column;
         align-items: center;
         gap: 15px;
         margin-top: 10px;
     }
     
-    .koprok-chips-group {
+    .baccarat-chips-group {
         width: 100%;
         justify-content: center;
     }
     
-    .koprok-btn-group {
+    .baccarat-btn-group {
         width: 100%;
     }
     
-    .koprok-btn {
+    .baccarat-btn {
         flex: 1;
         justify-content: center;
     }
     
-    .koprok-modal-content {
+    .baccarat-modal-content {
         max-width: 100%;
         max-height: 100vh;
         border-radius: 0;
         border-width: 1px 0;
     }
     
-    .koprok-modal {
+    .baccarat-modal {
         padding: 0;
     }
     
-    .koprok-dashboard {
-        padding: 10px;
+    .baccarat-dashboard {
+        padding: 8px;
+        gap: 8px;
     }
     
-    .koprok-stat-val {
+    .baccarat-stat-val {
         font-size: 15px;
     }
 }
 
 @media (max-height: 600px) {
-    .koprok-dashboard {
-        padding: 6px 12px;
+    .baccarat-dashboard {
+        padding: 4px 10px;
     }
-    .koprok-betting-area {
-        padding: 12px 18px;
+    .baccarat-betting-area {
+        padding: 10px 15px;
     }
 }
