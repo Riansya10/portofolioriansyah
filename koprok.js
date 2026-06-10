@@ -671,19 +671,28 @@ function updateKoprokPhysics() {
 function renderKoprok() {
     kCtx.clearRect(0, 0, kCanvas.width, kCanvas.height);
     
-    // 1. Background green velvet fabric layout
-    kCtx.fillStyle = '#064e3b'; // Dark green casino velvet
-    kCtx.fillRect(0, 0, kCanvas.width, kCanvas.height);
+    // 1. Background split luxury velvet fabric (Baccarat Style Red vs Blue)
+    // Left half (Blue / Player)
+    kCtx.fillStyle = '#081229'; 
+    kCtx.fillRect(0, 0, kCanvas.width / 2, kCanvas.height);
+    
+    // Right half (Red / Banker)
+    kCtx.fillStyle = '#200810'; 
+    kCtx.fillRect(kCanvas.width / 2, 0, kCanvas.width / 2, kCanvas.height);
+    
+    // Gold divider in the middle
+    kCtx.fillStyle = '#fbbf24';
+    kCtx.fillRect(kCanvas.width / 2 - 2, 10, 4, kCanvas.height - 20);
     
     // Decorative gold borders
-    kCtx.strokeStyle = '#eab308';
+    kCtx.strokeStyle = '#fbbf24';
     kCtx.lineWidth = 4;
     kCtx.strokeRect(10, 10, kCanvas.width - 20, kCanvas.height - 20);
     kCtx.lineWidth = 1;
     kCtx.strokeRect(16, 16, kCanvas.width - 32, kCanvas.height - 32);
     
     // 2. Betting Circle area on table (rattle plate)
-    kCtx.fillStyle = '#0f172a'; // dark plate circle background
+    kCtx.fillStyle = '#0a0d14'; // dark plate circle background
     kCtx.beginPath();
     kCtx.arc(440, 200, 190, 0, Math.PI * 2);
     kCtx.fill();
@@ -691,10 +700,11 @@ function renderKoprok() {
     kCtx.strokeStyle = '#fbbf24';
     kCtx.stroke();
     
-    // Three inner coin slots
-    kCtx.strokeStyle = 'rgba(251, 191, 36, 0.2)';
-    kCtx.lineWidth = 1.5;
-    coins.forEach(coin => {
+    // Three inner coin slots (Blue slot, Gold slot, Red slot)
+    const slotColors = ['rgba(59, 130, 246, 0.35)', 'rgba(251, 191, 36, 0.35)', 'rgba(239, 68, 68, 0.35)'];
+    coins.forEach((coin, idx) => {
+        kCtx.strokeStyle = slotColors[idx];
+        kCtx.lineWidth = 2;
         kCtx.beginPath();
         kCtx.arc(coin.x, coin.y + 10, 36, 0, Math.PI * 2);
         kCtx.stroke();
@@ -727,17 +737,17 @@ function drawKoprokCoin(coin) {
     kCtx.fill();
     
     if (isHeads) {
-        // HEADS (GOLD EMBLEM)
-        kCtx.fillStyle = '#fbbf24'; // main gold color
+        // HEADS (GOLD EMBLEM / BLUE BASE)
+        kCtx.fillStyle = '#1e3a8a'; // deep blue base
         kCtx.beginPath();
         kCtx.arc(0, 0, 30, 0, Math.PI * 2);
         kCtx.fill();
         kCtx.lineWidth = 2.5;
-        kCtx.strokeStyle = '#d97706'; // dark gold rim
+        kCtx.strokeStyle = '#3b82f6'; // glowing blue rim
         kCtx.stroke();
         
-        // Inner crown/head detailing
-        kCtx.fillStyle = '#d97706';
+        // Inner gold crown detailing
+        kCtx.fillStyle = '#fbbf24';
         kCtx.beginPath();
         kCtx.moveTo(-10, 10);
         kCtx.lineTo(-12, -2);
@@ -753,17 +763,17 @@ function drawKoprokCoin(coin) {
         kCtx.fillStyle = '#fff';
         kCtx.fillRect(-2, -2, 4, 4);
     } else {
-        // TAILS (SILVER NUMERIC VALUE)
-        kCtx.fillStyle = '#cbd5e1'; // main silver color
+        // TAILS (SILVER NUMERIC VALUE / RED BASE)
+        kCtx.fillStyle = '#7f1d1d'; // deep red base
         kCtx.beginPath();
         kCtx.arc(0, 0, 30, 0, Math.PI * 2);
         kCtx.fill();
         kCtx.lineWidth = 2.5;
-        kCtx.strokeStyle = '#64748b'; // dark silver rim
+        kCtx.strokeStyle = '#ef4444'; // glowing red rim
         kCtx.stroke();
         
         // Inner numeric value "500"
-        kCtx.fillStyle = '#475569';
+        kCtx.fillStyle = '#cbd5e1';
         kCtx.font = '900 16px Courier New, monospace';
         kCtx.textAlign = 'center';
         kCtx.textBaseline = 'middle';
@@ -824,7 +834,7 @@ function drawKoprokBanners() {
     if (kState === K_STATE_SHAKING) {
         kCtx.fillStyle = 'rgba(0,0,0,0.6)';
         kCtx.fillRect(100, 20, 680, 50);
-        kCtx.strokeStyle = '#f59e0b';
+        kCtx.strokeStyle = '#fbbf24';
         kCtx.strokeRect(100, 20, 680, 50);
         
         kCtx.fillStyle = '#fff';
@@ -834,9 +844,12 @@ function drawKoprokBanners() {
     } 
     // 2. Reveal result display
     else if (kState === K_STATE_REVEAL) {
+        const isBlueWin = (activeOutcome === SPOT_3G || activeOutcome === SPOT_2G1A);
+        const accentColor = isBlueWin ? '#3b82f6' : '#ef4444';
+        
         kCtx.fillStyle = 'rgba(0,0,0,0.8)';
         kCtx.fillRect(250, 20, 380, 50);
-        kCtx.strokeStyle = '#fbbf24';
+        kCtx.strokeStyle = accentColor;
         kCtx.strokeRect(250, 20, 380, 50);
         
         kCtx.fillStyle = '#fff';
@@ -846,19 +859,23 @@ function drawKoprokBanners() {
     } 
     // 3. Payout summary card
     else if (kState === K_STATE_PAYOUT) {
+        const isBlueWin = (activeOutcome === SPOT_3G || activeOutcome === SPOT_2G1A);
+        const accentColor = isBlueWin ? '#3b82f6' : '#ef4444';
+        const winSide = isBlueWin ? " (BIRU MENANG)" : " (MERAH MENANG)";
+
         kCtx.save();
         kCtx.shadowBlur = 10;
-        kCtx.shadowColor = '#eab308';
+        kCtx.shadowColor = accentColor;
         kCtx.fillStyle = 'rgba(15,23,42,0.9)';
         kCtx.fillRect(150, 140, 580, 120);
-        kCtx.strokeStyle = '#fbbf24';
+        kCtx.strokeStyle = accentColor;
         kCtx.lineWidth = 2;
         kCtx.strokeRect(150, 140, 580, 120);
         
-        kCtx.fillStyle = '#eab308';
+        kCtx.fillStyle = accentColor;
         kCtx.font = '900 22px Outfit, sans-serif';
         kCtx.textAlign = 'center';
-        kCtx.fillText("HASIL KELUAR: " + payoutMessage, 440, 185);
+        kCtx.fillText("HASIL KELUAR: " + payoutMessage + winSide, 440, 185);
         
         kCtx.fillStyle = '#fff';
         kCtx.font = '14px monospace';

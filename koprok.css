@@ -206,6 +206,16 @@
     text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
 }
 
+.koprok-stat-val.blue {
+    color: #3b82f6;
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+.koprok-stat-val.red {
+    color: #ef4444;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
 /* Betting Board Section */
 .koprok-betting-area {
     background: #070a0f;
@@ -244,15 +254,42 @@
     overflow: hidden;
 }
 
-.koprok-bet-spot:hover {
-    border-color: rgba(234, 179, 8, 0.5);
-    background: rgba(234, 179, 8, 0.02);
+.koprok-bet-spot.spot-blue {
+    border-color: rgba(59, 130, 246, 0.25);
+}
+.koprok-bet-spot.spot-blue:hover {
+    border-color: rgba(59, 130, 246, 0.6);
+    background: rgba(59, 130, 246, 0.03);
+}
+.koprok-bet-spot.spot-blue.selected {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.35);
+}
+.koprok-bet-spot.spot-blue .koprok-spot-title {
+    color: #60a5fa;
+}
+.koprok-bet-spot.spot-blue .koprok-spot-odds {
+    color: #93c5fd;
 }
 
-.koprok-bet-spot.selected {
-    border-color: #fb923c; /* Selected glow border */
-    background: rgba(251, 146, 60, 0.08);
-    box-shadow: 0 0 15px rgba(251, 146, 60, 0.2);
+.koprok-bet-spot.spot-red {
+    border-color: rgba(239, 68, 68, 0.25);
+}
+.koprok-bet-spot.spot-red:hover {
+    border-color: rgba(239, 68, 68, 0.6);
+    background: rgba(239, 68, 68, 0.03);
+}
+.koprok-bet-spot.spot-red.selected {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.35);
+}
+.koprok-bet-spot.spot-red .koprok-spot-title {
+    color: #f87171;
+}
+.koprok-bet-spot.spot-red .koprok-spot-odds {
+    color: #fca5a5;
 }
 
 .koprok-spot-title {

@@ -21,7 +21,7 @@
     <!-- Retro Slug Boxing Game Styles -->
     <link rel="stylesheet" href="game.css">
     <!-- Koprok Coin Bowl Game Styles -->
-    <link rel="stylesheet" href="koprok.css?v=1.0.1">
+    <link rel="stylesheet" href="koprok.css?v=1.0.2">
 </head>
 <body class="dark-theme">
     <!-- Background Elements -->
@@ -803,7 +803,7 @@
             <div class="koprok-dashboard">
                 <div class="koprok-stat-card">
                     <span class="koprok-stat-label">Koin Anda</span>
-                    <span class="koprok-stat-val gold" id="koprok-player-coin">1000</span>
+                    <span class="koprok-stat-val blue" id="koprok-player-coin">1000</span>
                 </div>
                 <div class="koprok-stat-card">
                     <span class="koprok-stat-label">Total Taruhan</span>
@@ -811,7 +811,7 @@
                 </div>
                 <div class="koprok-stat-card">
                     <span class="koprok-stat-label">Koin AI Komputer</span>
-                    <span class="koprok-stat-val gold" id="koprok-ai-coin">1000</span>
+                    <span class="koprok-stat-val red" id="koprok-ai-coin">1000</span>
                 </div>
             </div>
             
@@ -821,25 +821,25 @@
                 
                 <div class="koprok-grid-board">
                     <!-- Spot 3G -->
-                    <div class="koprok-bet-spot" data-spot="3g">
+                    <div class="koprok-bet-spot spot-blue" data-spot="3g">
                         <span class="koprok-spot-title">3 Gambar</span>
                         <span class="koprok-spot-odds">Odds: 1x4</span>
                         <span class="koprok-spot-mybet" id="spot-bet-3g"></span>
                     </div>
                     <!-- Spot 2G1A -->
-                    <div class="koprok-bet-spot" data-spot="2g1a">
+                    <div class="koprok-bet-spot spot-blue" data-spot="2g1a">
                         <span class="koprok-spot-title">2G & 1A</span>
                         <span class="koprok-spot-odds">Odds: 1x2</span>
                         <span class="koprok-spot-mybet" id="spot-bet-2g1a"></span>
                     </div>
                     <!-- Spot 1G2A -->
-                    <div class="koprok-bet-spot" data-spot="1g2a">
+                    <div class="koprok-bet-spot spot-red" data-spot="1g2a">
                         <span class="koprok-spot-title">1G & 2A</span>
                         <span class="koprok-spot-odds">Odds: 1x2</span>
                         <span class="koprok-spot-mybet" id="spot-bet-1g2a"></span>
                     </div>
                     <!-- Spot 3A -->
-                    <div class="koprok-bet-spot" data-spot="3a">
+                    <div class="koprok-bet-spot spot-red" data-spot="3a">
                         <span class="koprok-spot-title">3 Angka</span>
                         <span class="koprok-spot-odds">Odds: 1x4</span>
                         <span class="koprok-spot-mybet" id="spot-bet-3a"></span>
@@ -876,7 +876,7 @@
     <script src="game.js"></script>
     
     <!-- Koprok Betting Game Engine JS -->
-    <script src="koprok.js?v=1.0.1"></script>
+    <script src="koprok.js?v=1.0.2"></script>
 
     <!-- Script JS -->
     <script src="script.js"></script>
