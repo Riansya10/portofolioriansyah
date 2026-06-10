@@ -80,6 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Bind Menu Buttons
     setupMenuButtons();
+    // Bind Touch Controls for Mobile
+    setupTouchControls();
 });
 
 // Setup Menu buttons dynamically
@@ -129,6 +131,99 @@ function setupMenuButtons() {
             if (gameState !== STATE_MENU) {
                 returnToMenu();
             }
+        }
+    });
+}
+
+// Bind mobile virtual gamepad controls
+function setupTouchControls() {
+    const btnLeft = document.getElementById('touch-left');
+    const btnRight = document.getElementById('touch-right');
+    const btnJab = document.getElementById('touch-jab');
+    const btnBlock = document.getElementById('touch-block');
+    const btnHook = document.getElementById('touch-hook');
+
+    if (!btnLeft || !btnRight || !btnJab || !btnBlock || !btnHook) return;
+
+    // Helper to bind continuous press inputs (left, right, block)
+    function bindPress(element, keyName) {
+        // Touch events
+        element.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys[keyName] = true;
+            element.classList.add('active');
+        }, { passive: false });
+        
+        element.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys[keyName] = false;
+            element.classList.remove('active');
+        }, { passive: false });
+
+        // Mouse fallbacks
+        element.addEventListener('mousedown', (e) => {
+            keys[keyName] = true;
+            element.classList.add('active');
+        });
+        
+        element.addEventListener('mouseup', (e) => {
+            keys[keyName] = false;
+            element.classList.remove('active');
+        });
+
+        element.addEventListener('mouseleave', (e) => {
+            keys[keyName] = false;
+            element.classList.remove('active');
+        });
+    }
+
+    // Helper to bind trigger strikes (jab, hook)
+    function bindTrigger(element, actionCallback) {
+        // Touch events
+        element.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            element.classList.add('active');
+            actionCallback();
+        }, { passive: false });
+        
+        element.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            element.classList.remove('active');
+        }, { passive: false });
+
+        // Mouse fallbacks
+        element.addEventListener('mousedown', (e) => {
+            element.classList.add('active');
+            actionCallback();
+        });
+        
+        element.addEventListener('mouseup', (e) => {
+            element.classList.remove('active');
+        });
+    }
+
+    // Bind P1 inputs
+    bindPress(btnLeft, 'a');
+    bindPress(btnRight, 'd');
+    bindPress(btnBlock, 's');
+
+    bindTrigger(btnJab, () => {
+        if (gameState === STATE_PLAYING && (player1.action === 'idle' || player1.action === 'walk')) {
+            player1.setAction('jab', 12);
+            player1.vx = player1.facing * 2;
+            player1.checkHit(player2, 110, 6);
+        }
+    });
+
+    bindTrigger(btnHook, () => {
+        if (gameState === STATE_PLAYING && (player1.action === 'idle' || player1.action === 'walk')) {
+            player1.setAction('hook', 35);
+            player1.vx = player1.facing * 5;
+            setTimeout(() => {
+                if (gameState === STATE_PLAYING && player1.action === 'hook') {
+                    player1.checkHit(player2, 85, 16, true);
+                }
+            }, 150);
         }
     });
 }

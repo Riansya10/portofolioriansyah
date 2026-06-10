@@ -35,6 +35,7 @@
     border-radius: 12px;
     width: 100%;
     max-width: 900px;
+    max-height: 95vh; /* Limit vertical size so it never overflows browser height */
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -119,12 +120,16 @@
     justify-content: center;
     align-items: center;
     aspect-ratio: 2 / 1; /* Match the canvas aspect ratio */
+    flex: 1; /* Grow and shrink to fit available height */
+    min-height: 0; /* Let it shrink below content height */
+    overflow: hidden;
 }
 
 /* Canvas styling */
 #game-canvas {
-    width: 100%;
-    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Maintain ratio and fit parent constraints */
     display: block;
     image-rendering: pixelated; /* Retro crisp pixel effect */
 }
@@ -523,5 +528,133 @@
     
     .game-menu-container {
         padding: 15px;
+    }
+}
+
+/* ==========================================================================
+   VIRTUAL TOUCH GAMEPAD FOR MOBILE DEVICES
+   ========================================================================== */
+.game-touch-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px 20px 25px 20px;
+    display: none; /* Only visible on touch screen devices/responsive */
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none; /* Make click-through to canvas work */
+    z-index: 100;
+    box-sizing: border-box;
+}
+
+.touch-dpad, .touch-actions {
+    display: flex;
+    gap: 12px;
+    pointer-events: auto; /* Re-enable clicks for buttons */
+}
+
+/* Touch Button Styling */
+.touch-btn {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    transition: transform 0.1s ease, background-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.touch-btn i {
+    width: 24px;
+    height: 24px;
+    pointer-events: none;
+}
+
+/* Color codes to match boxing gloves & retro aesthetic */
+.touch-btn-move {
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.touch-btn-move:active, .touch-btn-move.active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(0.9);
+}
+
+.touch-btn-jab {
+    border-color: #06b6d4; /* Cyan */
+    color: #06b6d4;
+    text-shadow: 0 0 5px #06b6d4;
+}
+
+.touch-btn-jab:active, .touch-btn-jab.active {
+    background: rgba(6, 182, 212, 0.3);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
+    transform: scale(0.9);
+}
+
+.touch-btn-block {
+    border-color: #10b981; /* Green */
+    color: #10b981;
+    text-shadow: 0 0 5px #10b981;
+}
+
+.touch-btn-block:active, .touch-btn-block.active {
+    background: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+    transform: scale(0.9);
+}
+
+.touch-btn-hook {
+    border-color: #f97316; /* Orange */
+    color: #f97316;
+    text-shadow: 0 0 5px #f97316;
+}
+
+.touch-btn-hook:active, .touch-btn-hook.active {
+    background: rgba(249, 115, 22, 0.3);
+    box-shadow: 0 0 15px rgba(249, 115, 22, 0.6);
+    transform: scale(0.9);
+}
+
+/* Responsive constraints */
+@media (max-width: 991px) {
+    /* Show touch controls on mobile/tablets */
+    .game-touch-controls {
+        display: flex;
+    }
+    
+    /* Hide the desktop keyboard guides at bottom to save vertical screen space */
+    .game-controls-guide {
+        display: none;
+    }
+    
+    .game-modal-content {
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        border-width: 1px 0;
+    }
+    
+    .game-modal {
+        padding: 0;
+    }
+}
+
+/* Hide controls guide if screen height is too short (e.g. landscape mobile or small laptops) */
+@media (max-height: 620px) {
+    .game-controls-guide {
+        display: none;
     }
 }

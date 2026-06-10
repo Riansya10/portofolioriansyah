@@ -653,6 +653,23 @@
                 
                 <!-- Canvas element where the game draws -->
                 <canvas id="game-canvas"></canvas>
+
+                <!-- Virtual Touch Gamepad for Mobile/Touch Screens -->
+                <div class="game-touch-controls" id="game-touch-controls">
+                    <div class="touch-dpad">
+                        <button class="touch-btn touch-btn-move" id="touch-left" aria-label="Gerak Kiri">
+                            <i data-lucide="chevron-left"></i>
+                        </button>
+                        <button class="touch-btn touch-btn-move" id="touch-right" aria-label="Gerak Kanan">
+                            <i data-lucide="chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="touch-actions">
+                        <button class="touch-btn touch-btn-jab" id="touch-jab">JAB</button>
+                        <button class="touch-btn touch-btn-block" id="touch-block">BLOCK</button>
+                        <button class="touch-btn touch-btn-hook" id="touch-hook">HOOK</button>
+                    </div>
+                </div>
                 
                 <!-- Game Menu Overlay DOM (Overlays the canvas) -->
                 <div class="game-overlay-screen" id="game-menu-overlay">
