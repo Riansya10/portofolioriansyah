@@ -212,6 +212,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen to Fullscreen Change events to lock orientation
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    // Global user interaction listener to resume AudioContext (Autoplay bypass)
+    const resumeAudio = () => {
+        SoundFX.init();
+        if (SoundFX.ctx && SoundFX.ctx.state === 'suspended') {
+            SoundFX.ctx.resume().then(() => {
+                console.log("AudioContext resumed successfully via user gesture.");
+            });
+        }
+        window.removeEventListener('click', resumeAudio);
+        window.removeEventListener('keydown', resumeAudio);
+        window.removeEventListener('touchstart', resumeAudio);
+    };
+    window.addEventListener('click', resumeAudio);
+    window.addEventListener('keydown', resumeAudio);
+    window.addEventListener('touchstart', resumeAudio);
 });
 
 // Setup Menu buttons dynamically
