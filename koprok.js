@@ -30,7 +30,7 @@ let playerBets = { [SPOT_3G]: 0, [SPOT_2G1A]: 0, [SPOT_1G2A]: 0, [SPOT_3A]: 0 };
 let aiBets = { spot: null, amount: 0 };
 let activeOutcome = null; // outcome of the round: 3g, 2g1a, 1g2a, or 3a
 let payoutMessage = "";
-let winnerText = "";
+let koprokWinnerText = "";
 let winnerAnnouncement = "";
 
 // Animations entities
@@ -421,7 +421,7 @@ function resetMatch() {
     kState = K_STATE_BETTING;
     bowlState = 'open';
     bowlY = 50;
-    winnerText = "";
+    koprokWinnerText = "";
     payoutMessage = "";
     winnerAnnouncement = "";
     
@@ -557,7 +557,7 @@ function processPayout() {
         KoprokAudio.playLose();
     }
     
-    winnerText = summaryText;
+    koprokWinnerText = summaryText;
     
     // Clear staged bets
     for (let spot in playerBets) playerBets[spot] = 0;
@@ -862,7 +862,7 @@ function drawKoprokBanners() {
         
         kCtx.fillStyle = '#fff';
         kCtx.font = '14px monospace';
-        kCtx.fillText(winnerText, 440, 225);
+        kCtx.fillText(koprokWinnerText, 440, 225);
         kCtx.restore();
     } 
     // 4. Bankrupt Game Over Overlay
