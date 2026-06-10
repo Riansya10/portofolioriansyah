@@ -49,6 +49,126 @@ let onlineStatusText = "Tidak Terhubung";
 const PEER_PREFIX = 'rsb-';
 
 /* ==========================================================================
+   SOUND EFFECTS SYNTHESIZER (WEB AUDIO API)
+   ========================================================================== */
+const SoundFX = {
+    ctx: null,
+    
+    init() {
+        if (this.ctx) return;
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+            this.ctx = new AudioContextClass();
+        }
+    },
+    
+    playTone(freq, type, duration, endFreq = null, volume = 0.2) {
+        this.init();
+        if (!this.ctx) return;
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+        
+        try {
+            const osc = this.ctx.createOscillator();
+            const gainNode = this.ctx.createGain();
+            
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            
+            if (endFreq !== null) {
+                osc.frequency.exponentialRampToValueAtTime(endFreq, this.ctx.currentTime + duration);
+            }
+            
+            gainNode.gain.setValueAtTime(volume, this.ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+            
+            osc.connect(gainNode);
+            gainNode.connect(this.ctx.destination);
+            
+            osc.start();
+            osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+            console.warn("Audio error: ", e);
+        }
+    },
+    
+    playNoise(duration, type, volume = 0.2) {
+        this.init();
+        if (!this.ctx) return;
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+        
+        try {
+            const bufferSize = this.ctx.sampleRate * duration;
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+            
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = type;
+            filter.frequency.setValueAtTime(type === 'lowpass' ? 800 : 1500, this.ctx.currentTime);
+            filter.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + duration);
+            
+            const gainNode = this.ctx.createGain();
+            gainNode.gain.setValueAtTime(volume, this.ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+            
+            noise.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(this.ctx.destination);
+            
+            noise.start();
+            noise.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+            console.warn("Noise audio error: ", e);
+        }
+    },
+
+    playClick() {
+        this.playTone(600, 'sine', 0.08, 300, 0.12);
+    },
+
+    playJab() {
+        this.playNoise(0.12, 'bandpass', 0.2);
+    },
+
+    playHook() {
+        this.playNoise(0.25, 'lowpass', 0.3);
+    },
+
+    playHit() {
+        this.playNoise(0.18, 'lowpass', 0.35);
+        this.playTone(180, 'triangle', 0.15, 60, 0.35);
+    },
+
+    playBlock() {
+        this.playTone(800, 'triangle', 0.08, 1100, 0.2);
+    },
+
+    playBell() {
+        this.playTone(587.33, 'sine', 0.8, null, 0.25);
+        setTimeout(() => this.playTone(587.33, 'sine', 0.8, null, 0.25), 300);
+        setTimeout(() => this.playTone(587.33, 'sine', 1.2, null, 0.25), 600);
+    },
+
+    playKO() {
+        const notes = [440, 392, 349, 311, 293, 220];
+        notes.forEach((freq, idx) => {
+            setTimeout(() => {
+                this.playTone(freq, 'sawtooth', 0.25, freq * 0.8, 0.15);
+            }, idx * 150);
+        });
+    }
+};
+
+/* ==========================================================================
    DOM INITIALIZATION & EVENT LISTENERS
    ========================================================================== */
 document.addEventListener('DOMContentLoaded', () => {
@@ -102,12 +222,13 @@ function setupMenuButtons() {
     const btnJoinRoom = document.getElementById('btn-join-room');
     const cancelRoomBtn = document.getElementById('btn-cancel-room');
     
-    if (btnVsAI) btnVsAI.addEventListener('click', () => startGameMode(MODE_VS_AI));
-    if (btnLocal) btnLocal.addEventListener('click', () => startGameMode(MODE_LOCAL));
+    if (btnVsAI) btnVsAI.addEventListener('click', () => { SoundFX.playClick(); startGameMode(MODE_VS_AI); });
+    if (btnLocal) btnLocal.addEventListener('click', () => { SoundFX.playClick(); startGameMode(MODE_LOCAL); });
     
-    if (btnCreateRoom) btnCreateRoom.addEventListener('click', initOnlineHost);
+    if (btnCreateRoom) btnCreateRoom.addEventListener('click', () => { SoundFX.playClick(); initOnlineHost(); });
     if (btnJoinRoom) {
         btnJoinRoom.addEventListener('click', () => {
+            SoundFX.playClick();
             const inputVal = document.getElementById('join-code-input').value.trim();
             if (inputVal.length === 4) {
                 initOnlineClient(inputVal);
@@ -118,7 +239,7 @@ function setupMenuButtons() {
     }
 
     if (cancelRoomBtn) {
-        cancelRoomBtn.addEventListener('click', closeOnlineConnection);
+        cancelRoomBtn.addEventListener('click', () => { SoundFX.playClick(); closeOnlineConnection(); });
     }
 
     // Keyboard inputs listener
@@ -295,6 +416,8 @@ function isGameModalOpen() {
 }
 
 function openGameModal() {
+    SoundFX.init();
+    SoundFX.playClick();
     const modal = document.getElementById('game-modal');
     if (modal) {
         modal.classList.add('show');
@@ -303,7 +426,9 @@ function openGameModal() {
     }
 }
 
+// Close Game Modal
 function closeGameModal() {
+    SoundFX.playClick();
     const modal = document.getElementById('game-modal');
     if (modal) {
         modal.classList.remove('show');
@@ -708,6 +833,15 @@ class Boxer {
     setAction(action, duration) {
         this.action = action;
         this.actionTimer = duration;
+        
+        // Synthesize audio depending on action type
+        if (action === 'jab') {
+            SoundFX.playJab();
+        } else if (action === 'hook') {
+            SoundFX.playHook();
+        } else if (action === 'ko') {
+            SoundFX.playKO();
+        }
     }
     
     // Check hit collision
@@ -752,12 +886,18 @@ class Boxer {
         const hitY = this.y - (this.height * 0.7);
         
         if (isBlocked) {
+            // Play block sound!
+            SoundFX.playBlock();
+            
             // Green shield/spark particles on block
             spawnHitParticles(hitX, hitY, '#10b981', 8);
             if (isHost && gameMode === MODE_ONLINE) {
                 pendingHitsToSync.push({ x: hitX, y: hitY, color: '#10b981', isHook: false });
             }
         } else {
+            // Play hit/hurt sound!
+            SoundFX.playHit();
+            
             // Normal hit
             this.setAction('hurt', isHook ? 25 : 12);
             this.vx = knockbackDirection * (isHook ? 12 : 5);
@@ -1022,6 +1162,7 @@ function initMatch() {
 }
 
 function initRound(roundNum) {
+    SoundFX.playBell();
     gameState = STATE_ROUND_INTRO;
     stateTimer = 90; // 1.5 seconds in frames
     countdownText = "ROUND " + roundNum;
