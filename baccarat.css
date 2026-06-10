@@ -649,6 +649,11 @@
     height: auto !important;
 }
 
+/* Collapse online Host/Join columns once connected */
+.baccarat-online-setup.online-connected .online-setup-panel {
+    display: none !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .online-setup-panel {
@@ -661,7 +666,30 @@
     .join-input-group {
         max-width: 100%;
     }
+    
+    .baccarat-modal-content {
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        border-width: 1px 0;
+    }
+    
+    .baccarat-modal {
+        padding: 0;
+    }
+    
+    .baccarat-dashboard {
+        padding: 8px;
+        gap: 8px;
+    }
+    
+    .baccarat-stat-val {
+        font-size: 15px;
+    }
+}
 
+/* Vertical Stacking ONLY in Portrait Mode on Mobile/Tablets */
+@media (max-width: 768px) and (orientation: portrait) {
     .baccarat-grid-board {
         grid-template-columns: 1fr;
         gap: 8px;
@@ -687,33 +715,49 @@
         flex: 1;
         justify-content: center;
     }
-    
-    .baccarat-modal-content {
-        max-width: 100%;
-        max-height: 100vh;
-        border-radius: 0;
-        border-width: 1px 0;
-    }
-    
-    .baccarat-modal {
-        padding: 0;
-    }
-    
-    .baccarat-dashboard {
-        padding: 8px;
-        gap: 8px;
-    }
-    
-    .baccarat-stat-val {
-        font-size: 15px;
-    }
 }
 
-@media (max-height: 600px) {
-    .baccarat-dashboard {
-        padding: 4px 10px;
+/* Space-saving adjustments for Mobile Landscape / Low Height viewports */
+@media (max-height: 500px) {
+    .baccarat-modal-header .baccarat-title-text,
+    .baccarat-modal-header .baccarat-title-tag {
+        display: none !important;
+    }
+    .baccarat-modal-header {
+        padding: 4px 12px !important;
+        justify-content: flex-end !important;
+        gap: 10px;
+    }
+    .baccarat-mode-container {
+        display: none !important; /* Hide mode selection during active play to save space */
+    }
+    .baccarat-board-title {
+        display: none !important;
     }
     .baccarat-betting-area {
-        padding: 10px 15px;
+        padding: 6px 12px !important;
+    }
+    .baccarat-grid-board {
+        gap: 6px !important;
+    }
+    .baccarat-bet-spot {
+        padding: 6px 4px !important;
+    }
+    .baccarat-chips-panel {
+        margin-top: 4px !important;
+        gap: 10px !important;
+    }
+    .baccarat-chip {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 11px !important;
+        border-width: 2px !important;
+    }
+    .baccarat-btn {
+        padding: 6px 14px !important;
+        font-size: 12px !important;
+    }
+    .baccarat-dashboard {
+        padding: 4px 10px !important;
     }
 }

@@ -531,6 +531,11 @@ function disconnectOnlineGame() {
     bIsConnected = false;
     bIsHost = false;
     
+    const onlineSetup = document.getElementById('baccarat-online-setup');
+    if (onlineSetup) {
+        onlineSetup.classList.remove('online-connected');
+    }
+    
     if (bConn) {
         bConn.close();
         bConn = null;
@@ -563,6 +568,11 @@ function setupConnection() {
     bConn.on('open', () => {
         bIsConnected = true;
         updateOnlineStatus("Lawan Terhubung! Permainan Dimulai.", "connected");
+        
+        const onlineSetup = document.getElementById('baccarat-online-setup');
+        if (onlineSetup) {
+            onlineSetup.classList.add('online-connected');
+        }
         
         // Reset game stats for both P1 and P2
         player1Balance = 1000;
