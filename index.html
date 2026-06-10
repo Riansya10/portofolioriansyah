@@ -18,6 +18,8 @@
     
     <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
+    <!-- Retro Slug Boxing Game Styles -->
+    <link rel="stylesheet" href="game.css">
 </head>
 <body class="dark-theme">
     <!-- Background Elements -->
@@ -392,6 +394,7 @@
                     <button class="filter-btn active" data-filter="all">Semua</button>
                     <button class="filter-btn" data-filter="e-commerce">E-Commerce</button>
                     <button class="filter-btn" data-filter="system">Sistem Informasi</button>
+                    <button class="filter-btn" data-filter="game">Game JS</button>
                 </div>
 
                 <!-- Projects Grid -->
@@ -482,6 +485,36 @@
                                 <span>PostgreSQL</span>
                                 <span>Tailwind CSS</span>
                             </div>
+                        </div>
+                    </article>
+
+                    <!-- Project 3: Retro Slug Boxing -->
+                    <article class="project-card" data-category="game">
+                        <div class="project-img-box">
+                            <img src="assets/retro_slug_boxing.png" alt="Retro Slug Boxing - Game Banner" class="project-img">
+                            <div class="project-overlay">
+                                <div class="project-actions">
+                                    <a href="#" class="btn-icon-link btn-play-game" aria-label="Mainkan Game"><i data-lucide="play"></i></a>
+                                    <a href="https://github.com/Riansya10" target="_blank" rel="noopener noreferrer" class="btn-icon-link" aria-label="Lihat Kode">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="project-info">
+                            <span class="project-tag">Game JS / WebRTC P2P</span>
+                            <h3 class="project-card-title">Retro Slug Boxing</h3>
+                            <p class="project-card-desc">Game pertarungan tinju bergaya retro 16-bit militaristik. Bisa dimainkan melawan kecerdasan buatan (AI), berdua dalam satu keyboard (Lokal), atau bermain jarak jauh (Online Multiplayer) dengan memanfaatkan PeerJS WebRTC secara peer-to-peer tanpa server khusus.</p>
+                            <div class="project-tech-stack">
+                                <span>HTML5 Canvas</span>
+                                <span>JavaScript</span>
+                                <span>WebRTC / PeerJS</span>
+                                <span>Vanilla CSS</span>
+                            </div>
+                            <button class="btn btn-primary btn-play-game" style="margin-top: 15px; width: 100%; justify-content: center; padding: 10px 20px;">
+                                <i data-lucide="play" style="width: 16px; height: 16px;"></i>
+                                <span>Mainkan Sekarang</span>
+                            </button>
                         </div>
                     </article>
                 </div>
@@ -600,6 +633,100 @@
             <span class="toast-message">Pesan Anda berhasil dikirim!</span>
         </div>
     </div>
+
+    <!-- Retro Slug Boxing Game Modal -->
+    <div class="game-modal" id="game-modal">
+        <div class="game-modal-content">
+            <button class="game-modal-close" id="game-modal-close" aria-label="Tutup Game">
+                <i data-lucide="x"></i>
+            </button>
+            
+            <div class="game-modal-header">
+                <span class="game-title-text">
+                    <i data-lucide="swords"></i> Retro Slug Boxing
+                </span>
+                <span class="game-title-tag">16-Bit Arcade</span>
+            </div>
+            
+            <div class="game-viewport">
+                <div class="game-esc-toast">Tekan ESC untuk kembali ke menu</div>
+                
+                <!-- Canvas element where the game draws -->
+                <canvas id="game-canvas"></canvas>
+                
+                <!-- Game Menu Overlay DOM (Overlays the canvas) -->
+                <div class="game-overlay-screen" id="game-menu-overlay">
+                    <div class="game-menu-container">
+                        <h1 class="game-main-title">RETRO SLUG BOXING</h1>
+                        <div class="game-subtitle">16-BIT MILITARY ARCADE</div>
+                        
+                        <div class="game-btn-group">
+                            <button class="game-menu-btn game-menu-btn-primary" id="btn-vs-ai">
+                                <i data-lucide="cpu"></i> Tanding VS Komputer (AI)
+                            </button>
+                            <button class="game-menu-btn game-menu-btn-secondary" id="btn-local">
+                                <i data-lucide="users"></i> Tanding Berdua (Lokal)
+                            </button>
+                        </div>
+                        
+                        <!-- Online Multiplayer Section -->
+                        <div class="game-online-box">
+                            <span class="game-online-label">Mode Multiplayer Online</span>
+                            <div class="game-online-inputs">
+                                <button class="game-online-btn-create" id="btn-create-room">Buat Room</button>
+                                <input type="text" class="game-online-code-input" id="join-code-input" placeholder="KODE" maxlength="4">
+                                <button class="game-online-btn-join" id="btn-join-room">Gabung</button>
+                            </div>
+                            <span class="game-online-status" id="online-status">Status: Tidak Terhubung</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Room Code Overlay Popup (Host Waiting) -->
+                <div class="game-room-overlay" id="game-room-overlay" style="display: none;">
+                    <h2 class="game-room-title">ROOM BERHASIL DIBUAT</h2>
+                    <p class="game-room-desc">Berikan kode di bawah ini kepada teman Anda untuk bergabung:</p>
+                    <div class="game-room-code-display" id="room-code-display">----</div>
+                    <p class="game-room-desc" style="font-size: 11px; margin-top: -10px;">Menunggu pemain lain bergabung...</p>
+                    <button class="game-room-btn-cancel" id="btn-cancel-room">Batalkan</button>
+                </div>
+            </div>
+            
+            <!-- Control Guide Section -->
+            <div class="game-controls-guide">
+                <div class="game-control-col">
+                    <div class="game-control-header">
+                        <span class="game-control-color-p1"></span>
+                        <span>MARCO P1 (Cyan)</span>
+                    </div>
+                    <div class="game-control-list">
+                        <div class="game-control-item"><span>Gerak Kiri / Kanan:</span><span class="game-control-key">A</span> / <span class="game-control-key">D</span></div>
+                        <div class="game-control-item"><span>Pukulan Jab:</span><span class="game-control-key">W</span></div>
+                        <div class="game-control-item"><span>Pertahanan (Tangkis):</span><span class="game-control-key">S</span></div>
+                        <div class="game-control-item"><span>Pukulan Hook (KO Mash):</span><span class="game-control-key">Spasi</span></div>
+                    </div>
+                </div>
+                <div class="game-control-col">
+                    <div class="game-control-header">
+                        <span class="game-control-color-p2"></span>
+                        <span>REBEL P2 (Magenta)</span>
+                    </div>
+                    <div class="game-control-list">
+                        <div class="game-control-item"><span>Gerak Kiri / Kanan:</span><span class="game-control-key">&larr;</span> / <span class="game-control-key">&rarr;</span></div>
+                        <div class="game-control-item"><span>Pukulan Jab:</span><span class="game-control-key">&uarr;</span></div>
+                        <div class="game-control-item"><span>Pertahanan (Tangkis):</span><span class="game-control-key">&darr;</span></div>
+                        <div class="game-control-item"><span>Pukulan Hook (KO Mash):</span><span class="game-control-key">Enter</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PeerJS for WebRTC P2P Multiplayer -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
+    <!-- Game Engine JS -->
+    <script src="game.js"></script>
 
     <!-- Script JS -->
     <script src="script.js"></script>

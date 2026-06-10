@@ -1,0 +1,527 @@
+/* ==========================================================================
+   RETRO SLUG BOXING STYLESHEET (game.css)
+   ========================================================================== */
+
+/* Game Modal Overlay */
+.game-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(8, 12, 20, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 2000;
+    display: none; /* Controlled by JS */
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    padding: 20px;
+}
+
+.game-modal.show {
+    display: flex;
+    opacity: 1;
+}
+
+/* Modal Content Container */
+.game-modal-content {
+    position: relative;
+    background: #0f141d;
+    border: 2px solid #3b82f6; /* Cyan/Blue glowing border */
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 900px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: game-modal-zoom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes game-modal-zoom {
+    from {
+        transform: scale(0.85) translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Close Button */
+.game-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #9ca3af;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.2s ease;
+}
+
+.game-modal-close:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+    transform: rotate(90deg);
+}
+
+/* Game Header / Bar */
+.game-modal-header {
+    background: #090d16;
+    padding: 15px 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.game-title-text {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #f3f4f6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.game-title-tag {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* Main Playing Area wrapper */
+.game-viewport {
+    position: relative;
+    width: 100%;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 2 / 1; /* Match the canvas aspect ratio */
+}
+
+/* Canvas styling */
+#game-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    image-rendering: pixelated; /* Retro crisp pixel effect */
+}
+
+/* Game UI Overlays (Menus / Screens) */
+.game-overlay-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 14, 22, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.game-menu-container {
+    width: 100%;
+    max-width: 500px;
+    background: rgba(18, 25, 41, 0.7);
+    border: 1.5px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+/* Glowing Titles */
+.game-main-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: clamp(24px, 4vw, 36px);
+    color: #fff;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 10px rgba(234, 179, 8, 0.5), 0 0 20px rgba(234, 179, 8, 0.3);
+    background: linear-gradient(180deg, #fef08a, #eab308);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.game-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(10px, 2vw, 13px);
+    font-weight: 700;
+    color: #eab308;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 25px;
+    opacity: 0.9;
+}
+
+/* Retro Buttons */
+.game-btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.game-btn-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+}
+
+.game-menu-btn {
+    width: 100%;
+    padding: 12px 20px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #f3f4f6;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.game-menu-btn-primary {
+    border: 1.5px solid #10b981; /* Green neon */
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+}
+
+.game-menu-btn-primary:hover {
+    background: #10b981;
+    color: #000;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    transform: translateY(-2px);
+}
+
+.game-menu-btn-secondary {
+    border: 1.5px solid #d97706; /* Brownish-orange */
+    box-shadow: 0 0 10px rgba(217, 119, 6, 0.15);
+}
+
+.game-menu-btn-secondary:hover {
+    background: #d97706;
+    color: #000;
+    box-shadow: 0 0 15px rgba(217, 119, 6, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Online Section */
+.game-online-box {
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.game-online-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #9ca3af;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.game-online-inputs {
+    display: flex;
+    gap: 8px;
+}
+
+.game-online-btn-create {
+    width: 45%;
+    padding: 10px;
+    background: transparent;
+    border: 1.5px solid #f97316; /* Orange */
+    color: #f97316;
+    border-radius: 6px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.game-online-btn-create:hover {
+    background: #f97316;
+    color: #000;
+    box-shadow: 0 0 12px rgba(249, 115, 22, 0.4);
+}
+
+.game-online-code-input {
+    width: 30%;
+    background: #090d16;
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 8px;
+    color: #fff;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    font-size: 14px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.game-online-code-input:focus {
+    border-color: #06b6d4;
+    outline: none;
+    box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+}
+
+.game-online-btn-join {
+    width: 35%;
+    padding: 10px;
+    background: transparent;
+    border: 1.5px solid #06b6d4; /* Cyan */
+    color: #06b6d4;
+    border-radius: 6px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.game-online-btn-join:hover {
+    background: #06b6d4;
+    color: #000;
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+}
+
+.game-online-status {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 10px;
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.game-online-status.connected {
+    color: #10b981;
+}
+
+.game-online-status.connecting {
+    color: #fbbf24;
+}
+
+.game-online-status.error {
+    color: #ef4444;
+}
+
+/* Control Guides Footer */
+.game-controls-guide {
+    background: #090d16;
+    padding: 18px 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.game-control-col {
+    width: 50%;
+}
+
+.game-control-header {
+    font-size: 11px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.game-control-color-p1 {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #06b6d4; /* Cyan */
+    box-shadow: 0 0 6px #06b6d4;
+}
+
+.game-control-color-p2 {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ec4899; /* Pink */
+    box-shadow: 0 0 6px #ec4899;
+}
+
+.game-control-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.game-control-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.game-control-key {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #d1d5db;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 24px;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Back to menu overlay buttons */
+.game-esc-toast {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    border-radius: 4px;
+    color: #9ca3af;
+    font-size: 10px;
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 5;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Room Code Display Overlay */
+.game-room-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(18, 25, 41, 0.95);
+    border: 2px solid #fb923c;
+    border-radius: 12px;
+    padding: 30px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    z-index: 15;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+}
+
+.game-room-title {
+    font-family: 'Outfit', sans-serif;
+    color: #fb923c;
+    font-weight: 800;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.game-room-desc {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 20px;
+}
+
+.game-room-code-display {
+    font-family: monospace;
+    font-size: 32px;
+    font-weight: 900;
+    color: #fff;
+    background: #090d16;
+    border: 1px dashed rgba(255,255,255,0.2);
+    padding: 10px;
+    border-radius: 8px;
+    letter-spacing: 0.15em;
+    margin-bottom: 20px;
+}
+
+.game-room-btn-cancel {
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.game-room-btn-cancel:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+    .game-controls-guide {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .game-control-col {
+        width: 100%;
+    }
+    
+    .game-online-inputs {
+        flex-direction: column;
+    }
+    
+    .game-online-btn-create,
+    .game-online-code-input,
+    .game-online-btn-join {
+        width: 100%;
+    }
+    
+    .game-menu-container {
+        padding: 15px;
+    }
+}
