@@ -82,6 +82,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMenuButtons();
     // Bind Touch Controls for Mobile
     setupTouchControls();
+
+    // Fullscreen Button Listener
+    const fsBtn = document.getElementById('game-fullscreen-btn');
+    if (fsBtn) {
+        fsBtn.addEventListener('click', toggleFullscreen);
+    }
+    
+    // Listen to Fullscreen Change events to lock orientation
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 });
 
 // Setup Menu buttons dynamically
@@ -226,6 +236,57 @@ function setupTouchControls() {
             }, 150);
         }
     });
+}
+
+// Toggle native full screen mode
+function toggleFullscreen() {
+    const modalContent = document.querySelector('.game-modal-content');
+    if (!document.fullscreenElement) {
+        if (modalContent.requestFullscreen) {
+            modalContent.requestFullscreen();
+        } else if (modalContent.webkitRequestFullscreen) { // Safari
+            modalContent.webkitRequestFullscreen();
+        } else if (modalContent.msRequestFullscreen) { // IE11
+            modalContent.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+    }
+}
+
+// Handle fullscreen state change (lock orientation & update icon)
+function handleFullscreenChange() {
+    const fsBtn = document.getElementById('game-fullscreen-btn');
+    if (!fsBtn) return;
+    
+    const icon = fsBtn.querySelector('i');
+    
+    if (document.fullscreenElement) {
+        if (icon) icon.setAttribute('data-lucide', 'minimize');
+        
+        // Lock screen orientation to landscape on mobile devices
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(err => {
+                console.log("Gagal mengunci orientasi: ", err);
+            });
+        }
+    } else {
+        if (icon) icon.setAttribute('data-lucide', 'expand');
+        
+        // Unlock screen orientation
+        if (screen.orientation && screen.orientation.unlock) {
+            screen.orientation.unlock();
+        }
+    }
+    
+    // Refresh lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 }
 
 function isGameModalOpen() {
@@ -1333,6 +1394,16 @@ function updatePhysics() {
 }
 
 function renderGame() {
+    // Toggle touch controls visibility based on active gameplay state
+    const touchControls = document.getElementById('game-touch-controls');
+    if (touchControls) {
+        if (gameState === STATE_PLAYING || gameState === STATE_ROUND_INTRO || gameState === STATE_ROUND_END) {
+            touchControls.classList.add('active-gameplay');
+        } else {
+            touchControls.classList.remove('active-gameplay');
+        }
+    }
+
     ctx.save();
     
     // Screen shake translate

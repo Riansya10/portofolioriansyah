@@ -111,6 +111,63 @@
     border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
+/* Fullscreen Toggle Button in Header */
+.game-fullscreen-btn {
+    margin-left: auto;
+    margin-right: 45px; /* Leave space for absolute close button */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #9ca3af;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.game-fullscreen-btn:hover {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    transform: scale(1.05);
+}
+
+.game-fullscreen-btn i {
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}
+
+/* Fullscreen styling for the modal content */
+.game-modal-content:fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.game-modal-content:fullscreen .game-viewport {
+    flex: 1 !important;
+    height: auto !important;
+    aspect-ratio: auto !important; /* Scale to fit */
+}
+
+.game-modal-content:fullscreen #game-canvas {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+}
+
 /* Main Playing Area wrapper */
 .game-viewport {
     position: relative;
@@ -628,11 +685,16 @@
     transform: scale(0.9);
 }
 
-/* Responsive constraints */
-@media (max-width: 991px) {
-    /* Show touch controls on mobile/tablets */
-    .game-touch-controls {
+/* Responsive constraints & Touch Devices in Landscape/Portrait */
+@media (max-width: 991px), (pointer: coarse) {
+    /* Show touch controls ONLY during active gameplay */
+    .game-touch-controls.active-gameplay {
         display: flex;
+    }
+    
+    /* Hide touch controls when NOT active gameplay */
+    .game-touch-controls {
+        display: none;
     }
     
     /* Hide the desktop keyboard guides at bottom to save vertical screen space */
