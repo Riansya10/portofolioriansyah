@@ -33,12 +33,12 @@ let activeBets = { [SPOT_PLAYER]: 0, [SPOT_TIE]: 0, [SPOT_BANKER]: 0 };
 let selectedChipValue = 50;
 
 // WebRTC PeerJS variables
-let peer = null;
-let conn = null;
-let isHost = false;
-let isConnected = false;
+let bPeer = null;
+let bConn = null;
+let bIsHost = false;
+let bIsConnected = false;
 let onlineRoomCode = "";
-const PEER_PREFIX = 'bac-';
+const B_PEER_PREFIX = 'bac-';
 
 // Card Game variables
 let shoe = []; // deck shoe
@@ -412,10 +412,10 @@ function updateModeDashboardLabels() {
         if (betLabel) betLabel.textContent = "Taruhan Ronde";
     } else if (bMode === 'online') {
         if (p1Label) {
-            p1Label.textContent = isHost ? "Saldo Anda (P1)" : "Saldo P1";
+            p1Label.textContent = bIsHost ? "Saldo Anda (P1)" : "Saldo P1";
         }
         if (p2Label) {
-            p2Label.textContent = isHost ? "Saldo P2" : "Saldo Anda (P2)";
+            p2Label.textContent = bIsHost ? "Saldo P2" : "Saldo Anda (P2)";
         }
         if (betLabel) betLabel.textContent = "Taruhan Ronde";
     }
@@ -439,19 +439,19 @@ function hostOnlineGame() {
     
     updateOnlineStatus("Sedang membuat ruangan...", "connecting");
     
-    isHost = true;
-    peer = new Peer(PEER_PREFIX + code);
+    bIsHost = true;
+    bPeer = new Peer(B_PEER_PREFIX + code);
     
-    peer.on('open', () => {
+    bPeer.on('open', () => {
         updateOnlineStatus("Menunggu lawan masuk (Kode: " + code + ")...", "connecting");
     });
     
-    peer.on('connection', (connection) => {
-        conn = connection;
+    bPeer.on('connection', (connection) => {
+        bConn = connection;
         setupConnection();
     });
     
-    peer.on('error', (err) => {
+    bPeer.on('error', (err) => {
         console.error("PeerJS error: ", err);
         updateOnlineStatus("Gagal membuat ruangan. Kode tabrakan?", "disconnected");
         if (roomCodeDisplay) roomCodeDisplay.style.display = 'none';
@@ -472,31 +472,31 @@ function joinOnlineGame() {
     
     updateOnlineStatus("Sedang menyambungkan ke " + code + "...", "connecting");
     
-    isHost = false;
-    peer = new Peer(); // Client peer with random ID
+    bIsHost = false;
+    bPeer = new Peer(); // Client peer with random ID
     
-    peer.on('open', () => {
-        conn = peer.connect(PEER_PREFIX + code);
+    bPeer.on('open', () => {
+        bConn = bPeer.connect(B_PEER_PREFIX + code);
         setupConnection();
     });
     
-    peer.on('error', (err) => {
+    bPeer.on('error', (err) => {
         console.error("PeerJS error: ", err);
         updateOnlineStatus("Gagal menyambung. Kode salah / ruangan tidak aktif.", "disconnected");
     });
 }
 
 function disconnectOnlineGame() {
-    isConnected = false;
-    isHost = false;
+    bIsConnected = false;
+    bIsHost = false;
     
-    if (conn) {
-        conn.close();
-        conn = null;
+    if (bConn) {
+        bConn.close();
+        bConn = null;
     }
-    if (peer) {
-        peer.destroy();
-        peer = null;
+    if (bPeer) {
+        bPeer.destroy();
+        bPeer = null;
     }
     
     const roomDisplay = document.getElementById('room-code-display');
@@ -519,8 +519,8 @@ function updateOnlineStatus(msg, state) {
 }
 
 function setupConnection() {
-    conn.on('open', () => {
-        isConnected = true;
+    bConn.on('open', () => {
+        bIsConnected = true;
         updateOnlineStatus("Lawan Terhubung! Permainan Dimulai.", "connected");
         
         // Reset game stats for both P1 and P2
@@ -534,18 +534,18 @@ function setupConnection() {
         updateBaccaratUI();
     });
     
-    conn.on('data', (data) => {
+    bConn.on('data', (data) => {
         handleIncomingData(data);
     });
     
-    conn.on('close', () => {
-        isConnected = false;
+    bConn.on('close', () => {
+        bIsConnected = false;
         updateOnlineStatus("Koneksi terputus. Lawan meninggalkan permainan.", "disconnected");
         resetBaccaratMatch();
     });
     
-    conn.on('error', () => {
-        isConnected = false;
+    bConn.on('error', () => {
+        bIsConnected = false;
         updateOnlineStatus("Koneksi error.", "disconnected");
     });
 }
@@ -647,7 +647,7 @@ function setupBaccaratControls() {
                 // Main Lagi logic
                 BaccaratAudio.playClick();
                 if (bMode === 'online') {
-                    conn.send({ type: 'MATCH_RESTART' });
+                    bConn.send({ type: 'MATCH_RESTART' });
                 }
                 resetBaccaratMatch();
                 return;
@@ -666,7 +666,7 @@ function setupBaccaratControls() {
                     // Lock bets locally
                     btnDeal.disabled = true;
                     btnDeal.textContent = "Menunggu Dealer...";
-                    conn.send({ type: 'BET_LOCK', bets: activeBets });
+                    bConn.send({ type: 'BET_LOCK', bets: activeBets });
                 } else {
                     // We are Dealer clicking "Bagi Kartu"
                     BaccaratAudio.playClick();
@@ -699,8 +699,8 @@ function setupBaccaratControls() {
 
 function isMyTurnToBet() {
     if (bMode !== 'online') return true;
-    if (!isConnected) return false;
-    return (isHost && activeBettor === 1) || (!isHost && activeBettor === 2);
+    if (!bIsConnected) return false;
+    return (bIsHost && activeBettor === 1) || (!bIsHost && activeBettor === 2);
 }
 
 function placeBaccaratBet(spotId) {
@@ -735,7 +735,7 @@ function placeBaccaratBet(spotId) {
     BaccaratAudio.playChipSound();
     
     if (bMode === 'online') {
-        conn.send({ type: 'BET_UPDATE', bets: activeBets });
+        bConn.send({ type: 'BET_UPDATE', bets: activeBets });
     }
     
     updateBaccaratUI();
@@ -755,7 +755,7 @@ function clearBaccaratBets() {
     }
     
     if (bMode === 'online') {
-        conn.send({ type: 'BET_UPDATE', bets: activeBets });
+        bConn.send({ type: 'BET_UPDATE', bets: activeBets });
     }
     
     updateBaccaratUI();
@@ -989,7 +989,7 @@ function startOnlineDealing() {
         targetY: c.targetY
     }));
     
-    conn.send({ type: 'DEAL_CARDS', cards: cardsData });
+    bConn.send({ type: 'DEAL_CARDS', cards: cardsData });
     
     // Start animating deal locally
     processNextDealQueue();
@@ -1253,11 +1253,11 @@ function prepareNextRound() {
     if (bMode === 'local') {
         activeBettor = activeBettor === 1 ? 2 : 1;
     } 
-    else if (bMode === 'online' && isConnected) {
+    else if (bMode === 'online' && bIsConnected) {
         const nextBettor = activeBettor === 1 ? 2 : 1;
-        if (isHost) {
+        if (bIsHost) {
             activeBettor = nextBettor;
-            conn.send({ type: 'ROUND_RESET', nextBettor: nextBettor });
+            bConn.send({ type: 'ROUND_RESET', nextBettor: nextBettor });
         }
     }
     
@@ -1609,7 +1609,7 @@ function drawTurnIndicators() {
         bCtx.fillText(`PLAYER ${activeBettor} PASANG TARUHAN! PLAYER ${activeBettor === 1 ? 2 : 1} KLIK BAGI KARTU.`, 440, 41);
         bCtx.restore();
     } 
-    else if (bMode === 'online' && isConnected) {
+    else if (bMode === 'online' && bIsConnected) {
         const myTurn = isMyTurnToBet();
         const text = myTurn ? "GILIRAN ANDA PASANG TARUHAN! LAWAN AKAN MEMBAGI KARTU." : "MENUNGGU LAWAN PASANG TARUHAN... ANDA ADALAH DEALER.";
         const accent = myTurn ? '#3b82f6' : '#ef4444';
