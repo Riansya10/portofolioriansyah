@@ -618,8 +618,12 @@
     to { opacity: 1; }
 }
 
-/* Fullscreen mode styling */
-.baccarat-modal-content:fullscreen {
+/* Fullscreen & Pseudo-Fullscreen mode styling */
+.baccarat-modal-content:fullscreen,
+.baccarat-modal-content.baccarat-pseudo-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
     max-width: 100vw !important;
@@ -630,14 +634,17 @@
     background: #05070a !important;
     display: flex !important;
     flex-direction: column !important;
+    z-index: 2005 !important;
 }
 
-.baccarat-modal-content:fullscreen .baccarat-viewport {
+.baccarat-modal-content:fullscreen .baccarat-viewport,
+.baccarat-modal-content.baccarat-pseudo-fullscreen .baccarat-viewport {
     flex: 1 !important;
     aspect-ratio: auto !important;
 }
 
-.baccarat-modal-content:fullscreen #baccarat-canvas {
+.baccarat-modal-content:fullscreen #baccarat-canvas,
+.baccarat-modal-content.baccarat-pseudo-fullscreen #baccarat-canvas {
     width: auto !important;
     height: auto !important;
 }

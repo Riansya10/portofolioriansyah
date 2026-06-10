@@ -287,7 +287,15 @@ function closeBaccaratModal() {
         disconnectOnlineGame();
         if (document.fullscreenElement) {
             document.exitFullscreen().catch(() => {});
+        } else if (document.webkitFullscreenElement) {
+            document.webkitExitFullscreen();
         }
+        
+        const modalContent = document.querySelector('.baccarat-modal-content');
+        if (modalContent) {
+            modalContent.classList.remove('baccarat-pseudo-fullscreen');
+        }
+        updateFullscreenButtonUI(false);
     }
 }
 
@@ -314,38 +322,71 @@ function stopBaccaratLoop() {
 
 function toggleBaccaratFullscreen() {
     const modalContent = document.querySelector('.baccarat-modal-content');
-    if (!document.fullscreenElement) {
+    if (!modalContent) return;
+    
+    const isCurrentlyFS = !!(document.fullscreenElement || document.webkitFullscreenElement || modalContent.classList.contains('baccarat-pseudo-fullscreen'));
+    
+    if (!isCurrentlyFS) {
         if (modalContent.requestFullscreen) {
-            modalContent.requestFullscreen();
+            modalContent.requestFullscreen().catch(() => {});
         } else if (modalContent.webkitRequestFullscreen) {
             modalContent.webkitRequestFullscreen();
         }
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
-    }
-}
-
-function handleBaccaratFullscreenChange() {
-    const fsBtn = document.getElementById('baccarat-fullscreen-btn');
-    if (!fsBtn) return;
-    const icon = fsBtn.querySelector('i');
-    
-    if (document.fullscreenElement) {
-        if (icon) icon.setAttribute('data-lucide', 'minimize');
+        modalContent.classList.add('baccarat-pseudo-fullscreen');
+        updateFullscreenButtonUI(true);
         if (screen.orientation && screen.orientation.lock) {
             screen.orientation.lock('landscape').catch(() => {});
         }
     } else {
-        if (icon) icon.setAttribute('data-lucide', 'expand');
+        if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+        modalContent.classList.remove('baccarat-pseudo-fullscreen');
+        updateFullscreenButtonUI(false);
         if (screen.orientation && screen.orientation.unlock) {
             screen.orientation.unlock();
+        }
+    }
+}
+
+function updateFullscreenButtonUI(isFS) {
+    const fsBtn = document.getElementById('baccarat-fullscreen-btn');
+    if (!fsBtn) return;
+    const icon = fsBtn.querySelector('i');
+    
+    if (icon) {
+        if (isFS) {
+            icon.setAttribute('data-lucide', 'minimize');
+        } else {
+            icon.setAttribute('data-lucide', 'expand');
         }
     }
     
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
+    }
+}
+
+function handleBaccaratFullscreenChange() {
+    const modalContent = document.querySelector('.baccarat-modal-content');
+    if (!modalContent) return;
+    
+    const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    
+    if (isFS) {
+        modalContent.classList.add('baccarat-pseudo-fullscreen');
+        updateFullscreenButtonUI(true);
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
+        }
+    } else {
+        modalContent.classList.remove('baccarat-pseudo-fullscreen');
+        updateFullscreenButtonUI(false);
+        if (screen.orientation && screen.orientation.unlock) {
+            screen.orientation.unlock();
+        }
     }
 }
 
