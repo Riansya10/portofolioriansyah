@@ -169,7 +169,7 @@ const KoprokAudio = {
 /* ==========================================================================
    DOM INITIALIZATION & ACTIONS
    ========================================================================== */
-document.addEventListener('DOMContentLoaded', () => {
+function initKoprok() {
     // Open Koprok Modal
     document.body.addEventListener('click', (e) => {
         const playBtn = e.target.closest('.btn-play-koprok');
@@ -200,7 +200,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Setup Game controls
     setupKoprokControls();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initKoprok);
+} else {
+    initKoprok();
+}
 
 function openKoprokModal() {
     KoprokAudio.init();
