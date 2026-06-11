@@ -1,169 +1,143 @@
 /* ==========================================================================
-   CYBER DERBY ROYALE - GAME LOGIC & ENGINE (derby.js)
+   CYBER RIDER DERBY - ARCADE RACER GAME LOGIC & ENGINE (derby.js)
    ========================================================================== */
 
 (function () {
-    // Game variables
-    let playerCoins = 1000;
-    let selectedChip = 50; // default chip value
-    let activeBets = {};   // { horseId: betAmount }
-    let totalBet = 0;
-    let raceInProgress = false;
-    let raceFinished = false;
-    let resultsHistory = []; // Array of winning horse IDs
+    // Game state
+    let gameActive = false;
+    let raceState = "menu"; // "menu", "countdown", "racing", "finished"
+    let countdownVal = 3;
+    let countdownTimer = null;
+    
+    // Player stats
+    let playerZ = 0;       // distance along track
+    let playerX = 0;       // lateral lane position (-1.8 to +1.8)
+    let playerSpeed = 0;   // SP actual
+    let playerStamina = 100; // ST actual
+    let playerWhipActive = false;
+    let playerRank = 6;
+    let finishOrder = [];  // Array of finished horses
+    let finishTime = 0;
+    let raceStartTime = 0;
+    
+    // Collision invulnerability
+    let invulnFrames = 0;
+    const INVULN_MAX_FRAMES = 90; // 1.5 seconds at 60fps
 
+    // Inputs
+    let keys = {};
+    const LATERAL_SPEED = 2.4; // lane units per second
+    
     // Track parameters
-    const TRACK_LENGTH = 3200; // Total distance of the race
+    const TRACK_LENGTH = 36000; // 1800 meters total (36000 world Z units)
     let canvas, ctx;
     let animationFrameId;
     let lastTime = 0;
-    let cameraX = 0;
-
-    // Sound variables
+    
+    // Web Audio Synthesizer
     let audioCtx = null;
-    let crowdNoiseSource = null;
-    let crowdGainNode = null;
-    let gallopInterval = null;
+    let crowdCheerSource = null;
+    let crowdCheerGain = null;
 
-    // Horses Data Definition
+    // Horses definition (Player is id: 0, cyan)
     const HORSES = [
         {
-            id: 1,
-            number: "01",
-            name: "AERO SWIFT",
-            color: "#00f0ff",      // Cyan
-            odds: 2.2,
-            speedStat: 4,
-            staminaStat: 4,
-            formStat: 4,           // Random variation factor
-            description: "Konsisten dan cepat di segala kondisi track.",
-            // Runtime simulation variables
+            id: 0,
+            name: "CYBER STREAK",
+            color: "#00f0ff",
+            number: "08",
+            isPlayer: true,
+            z: 0,
             x: 0,
-            y: 0,
-            currentSpeed: 0,
-            boostCooldown: 0,
-            boostActive: 0,
+            speed: 0,
+            legPhase: 0,
             finished: false,
-            finishTime: 0,
-            legPhase: 0
+            time: 0
+        },
+        {
+            id: 1,
+            name: "NEON AURA",
+            color: "#ff00aa",
+            number: "01",
+            isPlayer: false,
+            z: 1200,
+            x: -0.9,
+            speed: 250,
+            legPhase: 0,
+            finished: false,
+            time: 0,
+            targetX: -0.9,
+            laneTimer: 2
         },
         {
             id: 2,
+            name: "VOLT FALCON",
+            color: "#eab308",
             number: "02",
-            name: "CRIMSON BOLT",
-            color: "#ff0055",      // Neon Pink/Red
-            odds: 3.5,
-            speedStat: 5,
-            staminaStat: 2,
-            formStat: 5,
-            description: "Sangat cepat di awal, rawan lelah di garis finish.",
-            x: 0,
-            y: 0,
-            currentSpeed: 0,
-            boostCooldown: 0,
-            boostActive: 0,
+            isPlayer: false,
+            z: 400,
+            x: 0.9,
+            speed: 242,
+            legPhase: 0,
             finished: false,
-            finishTime: 0,
-            legPhase: 0
+            time: 0,
+            targetX: 0.9,
+            laneTimer: 3
         },
         {
             id: 3,
+            name: "CRIMSON COMET",
+            color: "#ff0055",
             number: "03",
-            name: "VOLT DUST",
-            color: "#eab308",      // Yellow
-            odds: 4.8,
-            speedStat: 3,
-            staminaStat: 5,
-            formStat: 3,
-            description: "Lambat di awal, tangguh dan melesat cepat di akhir.",
-            x: 0,
-            y: 0,
-            currentSpeed: 0,
-            boostCooldown: 0,
-            boostActive: 0,
+            isPlayer: false,
+            z: 2000,
+            x: 0.3,
+            speed: 258,
+            legPhase: 0,
             finished: false,
-            finishTime: 0,
-            legPhase: 0
+            time: 0,
+            targetX: 0.3,
+            laneTimer: 1.5
         },
         {
             id: 4,
+            name: "GLITCH PHANTOM",
+            color: "#a855f7",
             number: "04",
-            name: "GLITCH RUNNER",
-            color: "#a855f7",      // Purple
-            odds: 8.0,
-            speedStat: 4,
-            staminaStat: 3,
-            formStat: 5,
-            description: "Sulit diprediksi, memiliki boost acak tak terduga.",
-            x: 0,
-            y: 0,
-            currentSpeed: 0,
-            boostCooldown: 0,
-            boostActive: 0,
+            isPlayer: false,
+            z: 800,
+            x: -0.3,
+            speed: 246,
+            legPhase: 0,
             finished: false,
-            finishTime: 0,
-            legPhase: 0
+            time: 0,
+            targetX: -0.3,
+            laneTimer: 4
         },
         {
             id: 5,
+            name: "AERO SWIFT",
+            color: "#00ff88",
             number: "05",
-            name: "NEON SPARK",
-            color: "#00ff88",      // Green
-            odds: 15.0,
-            speedStat: 2,
-            staminaStat: 4,
-            formStat: 4,
-            description: "Kuda underdog, berpotensi memberikan jackpot besar.",
-            x: 0,
-            y: 0,
-            currentSpeed: 0,
-            boostCooldown: 0,
-            boostActive: 0,
+            isPlayer: false,
+            z: 1600,
+            x: -1.4,
+            speed: 254,
+            legPhase: 0,
             finished: false,
-            finishTime: 0,
-            legPhase: 0
+            time: 0,
+            targetX: -1.4,
+            laneTimer: 2.5
         }
     ];
 
-    // Particle pool for dust/sparks
+    // Particle pools
     let particles = [];
 
-    // Commentary lists
-    const COMMENTARY_START = [
-        "Dan mereka mulai berlari! Start yang sangat bersih!",
-        "Gerbang dibuka! Balapan Cyber Derby Royale dimulai!",
-        "Balapan telah dimulai! Semua kuda melesat keluar dari gerbang start!"
-    ];
-
-    const COMMENTARY_MID = [
-        "{leader} memimpin di posisi terdepan!",
-        "Persaingan sangat ketat! {leader} berusaha mempertahankan keunggulan!",
-        "{leader} memacu kecepatan dengan sangat aggresif!",
-        "{challenger} menempel ketat di belakang {leader}!",
-        "Tikungan pertama terlewati, {leader} memimpin balapan!"
-    ];
-
-    const COMMENTARY_BOOST = [
-        "{horse} mengaktifkan TURBO CHARGE! Melesat bagai peluru!",
-        "{horse} mendapatkan lonjakan daya! Kecepatan meningkat drastis!",
-        "{horse} menggunakan nitrous booster! Mengambil alih lintasan!"
-    ];
-
-    const COMMENTARY_FATIGUE = [
-        "{horse} tampak mulai kehabisan daya di lintasan luar!",
-        "Stamina {horse} menurun! Kecepatannya mulai melambat!",
-        "{horse} tampak kelelahan memacu tenaganya!"
-    ];
-
-    const COMMENTARY_FINISH = [
-        "Luar biasa! {winner} menyentuh garis finish pertama kali!",
-        "SELESAI! {winner} memenangkan balapan Cyber Derby Royale hari ini!",
-        "Dan juara kita adalah... {winner}! Kemenangan yang spektakuler!"
-    ];
-
-    let commentaryQueue = [];
-    let currentCommentaryText = "Pasang taruhan Anda pada kuda favorit dan klik MULAI BALAPAN!";
-    let commentaryTimer = null;
+    // Camera parameters
+    const horizonY = 135;
+    const focalLength = 250;
+    const roadWidthAtBottom = 450;
 
     /* ==========================================================================
        INITIALIZATION
@@ -173,30 +147,40 @@
     });
 
     function initDerbyGame() {
-        // Find DOM Elements
         canvas = document.getElementById("derby-canvas");
         if (!canvas) return;
         ctx = canvas.getContext("2d");
 
-        // Fit canvas resolution
+        // Fit resolution
         canvas.width = 900;
         canvas.height = 360;
 
-        // Reset positions
-        resetHorses();
-
-        // Bind UI Events
+        // Bind events
         setupUIEvents();
 
-        // Initial render
-        drawRaceTrack();
+        // Bind Keyboard Inputs
+        window.addEventListener("keydown", (e) => {
+            if (raceState === "racing") {
+                keys[e.key] = true;
+                
+                // Prevent scrolling with arrows/space inside game modal
+                if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(e.key)) {
+                    e.preventDefault();
+                }
+            }
+        });
+        window.addEventListener("keyup", (e) => {
+            if (raceState === "racing") {
+                keys[e.key] = false;
+            }
+        });
 
-        // Update stats display
-        updateUIDisplay();
+        // Initial render menu state
+        drawMenuBackground();
     }
 
     function setupUIEvents() {
-        // Trigger Modal Open (bind to buttons)
+        // Trigger Modal Open (bind to button in index.html)
         document.addEventListener("click", (e) => {
             const playBtn = e.target.closest(".btn-play-derby");
             if (playBtn) {
@@ -218,7 +202,6 @@
             fsBtn.addEventListener("click", () => {
                 if (!document.fullscreenElement) {
                     modalContent.requestFullscreen().catch(() => {
-                        // fallback to pseudo fullscreen
                         modalContent.classList.toggle("derby-pseudo-fullscreen");
                     });
                 } else {
@@ -227,81 +210,66 @@
             });
         }
 
-        // Listen for escape to exit pseudo fullscreen
+        // Escape full screen handling
         document.addEventListener("fullscreenchange", () => {
             if (!document.fullscreenElement) {
                 modalContent?.classList.remove("derby-pseudo-fullscreen");
             }
         });
 
-        // Click outside modal content to close
-        const modal = document.getElementById("derby-modal");
-        if (modal) {
-            modal.addEventListener("click", (e) => {
-                if (e.target === modal && !raceInProgress) {
-                    closeDerbyModal();
-                }
-            });
-        }
-
-        // Chip Selector Buttons
-        const chips = document.querySelectorAll(".derby-chip");
-        chips.forEach(chip => {
-            chip.addEventListener("click", () => {
-                if (raceInProgress) return;
-                chips.forEach(c => c.classList.remove("selected"));
-                chip.classList.add("selected");
-                
-                const val = chip.getAttribute("data-value");
-                if (val === "all") {
-                    selectedChip = playerCoins;
-                } else {
-                    selectedChip = parseInt(val);
-                }
-                playSynthesizedSound("chip");
-            });
+        // Play/Restart buttons
+        document.addEventListener("click", (e) => {
+            const startBtn = e.target.closest("#btn-derby-start-game");
+            const restartBtn = e.target.closest("#btn-derby-restart");
+            
+            if (startBtn || restartBtn) {
+                e.preventDefault();
+                initAudio();
+                startRaceCountdown();
+            }
         });
 
-        // Horse Betting Spots Click Handler
-        const spots = document.querySelectorAll(".derby-bet-spot");
-        spots.forEach(spot => {
-            spot.addEventListener("click", () => {
-                if (raceInProgress) return;
-                const id = parseInt(spot.getAttribute("data-horse-id"));
-                placeBet(id);
-            });
-        });
+        // Virtual Touch controls for Mobile Gamepad
+        const leftBtn = document.getElementById("touch-derby-left");
+        const rightBtn = document.getElementById("touch-derby-right");
+        const whipBtn = document.getElementById("touch-derby-whip");
 
-        // Clear Bets
-        const clearBtn = document.getElementById("btn-derby-clear");
-        if (clearBtn) {
-            clearBtn.addEventListener("click", () => {
-                if (raceInProgress) return;
-                clearBets();
-                playSynthesizedSound("clear");
-            });
-        }
+        if (leftBtn && rightBtn && whipBtn) {
+            // Touch Left
+            leftBtn.addEventListener("touchstart", (e) => { e.preventDefault(); keys["ArrowLeft"] = true; }, { passive: false });
+            leftBtn.addEventListener("touchend", (e) => { e.preventDefault(); keys["ArrowLeft"] = false; }, { passive: false });
+            
+            // Touch Right
+            rightBtn.addEventListener("touchstart", (e) => { e.preventDefault(); keys["ArrowRight"] = true; }, { passive: false });
+            rightBtn.addEventListener("touchend", (e) => { e.preventDefault(); keys["ArrowRight"] = false; }, { passive: false });
+            
+            // Touch Whip
+            whipBtn.addEventListener("touchstart", (e) => { e.preventDefault(); playerWhipActive = true; }, { passive: false });
+            whipBtn.addEventListener("touchend", (e) => { e.preventDefault(); playerWhipActive = false; }, { passive: false });
+            
+            // Mouse equivalents just in case for testing responsive layout on desktop
+            leftBtn.addEventListener("mousedown", () => { keys["ArrowLeft"] = true; });
+            leftBtn.addEventListener("mouseup", () => { keys["ArrowLeft"] = false; });
+            leftBtn.addEventListener("mouseleave", () => { keys["ArrowLeft"] = false; });
 
-        // Start Race
-        const startBtn = document.getElementById("btn-derby-race");
-        if (startBtn) {
-            startBtn.addEventListener("click", () => {
-                if (raceInProgress || totalBet === 0) return;
-                startRaceSimulation();
-            });
+            rightBtn.addEventListener("mousedown", () => { keys["ArrowRight"] = true; });
+            rightBtn.addEventListener("mouseup", () => { keys["ArrowRight"] = false; });
+            rightBtn.addEventListener("mouseleave", () => { keys["ArrowRight"] = false; });
+
+            whipBtn.addEventListener("mousedown", () => { playerWhipActive = true; });
+            whipBtn.addEventListener("mouseup", () => { playerWhipActive = false; });
+            whipBtn.addEventListener("mouseleave", () => { playerWhipActive = false; });
         }
     }
 
-    /* ==========================================================================
-       MODAL CONTROLS
-       ========================================================================== */
     function openDerbyModal() {
         const modal = document.getElementById("derby-modal");
         if (modal) {
             modal.classList.add("show");
-            // Re-fit canvas just in case
+            showScreen("start");
+            gameActive = true;
+            resetGameState();
             setTimeout(() => {
-                initAudio();
                 initDerbyGame();
             }, 100);
         }
@@ -312,9 +280,10 @@
         if (modal) {
             modal.classList.remove("show");
             stopRaceAudio();
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
+            gameActive = false;
+            raceState = "menu";
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (countdownTimer) clearInterval(countdownTimer);
         }
     }
 
@@ -326,7 +295,7 @@
         try {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         } catch (e) {
-            console.error("Web Audio API not supported in this browser", e);
+            console.error("Web Audio API not supported", e);
         }
     }
 
@@ -340,74 +309,125 @@
         const gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-
         const now = audioCtx.currentTime;
 
-        if (type === "chip") {
-            // High-pitched mechanical click/clink
+        if (type === "tick") {
+            // Short countdown beep
             osc.type = "sine";
-            osc.frequency.setValueAtTime(1000, now);
-            osc.frequency.exponentialRampToValueAtTime(3000, now + 0.08);
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-            osc.start(now);
-            osc.stop(now + 0.08);
-        } 
-        else if (type === "clear") {
-            // Swoosh down
-            osc.type = "triangle";
-            osc.frequency.setValueAtTime(400, now);
-            osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+            osc.frequency.setValueAtTime(440, now);
             gain.gain.setValueAtTime(0.12, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
             osc.start(now);
-            osc.stop(now + 0.15);
+            osc.stop(now + 0.1);
         } 
-        else if (type === "bell") {
-            // Double starting bell ring
+        else if (type === "go") {
+            // Higher starting beep
             osc.type = "sine";
             osc.frequency.setValueAtTime(880, now);
-            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.setValueAtTime(0.18, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
             osc.start(now);
             osc.stop(now + 0.4);
+        }
+        else if (type === "whip") {
+            // Whip crack (filtered white noise burst)
+            const bufferSize = audioCtx.sampleRate * 0.08; // 80ms
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
 
-            const osc2 = audioCtx.createOscillator();
-            const gain2 = audioCtx.createGain();
-            osc2.type = "sine";
-            osc2.frequency.setValueAtTime(1200, now + 0.15);
-            osc2.connect(gain2);
-            gain2.connect(audioCtx.destination);
-            gain2.gain.setValueAtTime(0.15, now + 0.15);
-            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
-            osc2.start(now + 0.15);
-            osc2.stop(now + 0.55);
-        } 
+            const noiseNode = audioCtx.createBufferSource();
+            noiseNode.buffer = buffer;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = "bandpass";
+            filter.frequency.setValueAtTime(1200, now);
+            filter.Q.setValueAtTime(3.0, now);
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.16, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+            noiseNode.connect(filter);
+            filter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noiseNode.start(now);
+
+            // Follow-up slap chime
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(600, now + 0.01);
+            osc.frequency.exponentialRampToValueAtTime(200, now + 0.06);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+            osc.start(now);
+            osc.stop(now + 0.06);
+        }
+        else if (type === "crash") {
+            // Crash impact (heavy rumble)
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(100, now);
+            osc.frequency.linearRampToValueAtTime(20, now + 0.5);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            osc.start(now);
+            osc.stop(now + 0.5);
+
+            // Noise element of crash
+            const bufferSize = audioCtx.sampleRate * 0.4;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            
+            const lowpass = audioCtx.createBiquadFilter();
+            lowpass.type = "lowpass";
+            lowpass.frequency.setValueAtTime(180, now);
+            
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.2, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+            noise.connect(lowpass);
+            lowpass.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noise.start(now);
+        }
         else if (type === "win") {
-            // Arpeggio chime
-            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-            notes.forEach((freq, idx) => {
+            // Retro happy victory theme
+            const melody = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50]; // C major scale
+            melody.forEach((freq, idx) => {
                 const noteOsc = audioCtx.createOscillator();
                 const noteGain = audioCtx.createGain();
-                noteOsc.type = "sine";
+                noteOsc.type = "triangle";
                 noteOsc.frequency.setValueAtTime(freq, now + idx * 0.1);
                 noteOsc.connect(noteGain);
                 noteGain.connect(audioCtx.destination);
-                noteGain.gain.setValueAtTime(0.1, now + idx * 0.1);
-                noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.3);
+                noteGain.gain.setValueAtTime(0.15, now + idx * 0.1);
+                noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.25);
                 noteOsc.start(now + idx * 0.1);
-                noteOsc.stop(now + idx * 0.1 + 0.3);
+                noteOsc.stop(now + idx * 0.1 + 0.25);
             });
-        } 
+        }
         else if (type === "lose") {
-            // Sad slides
-            osc.type = "sawtooth";
-            osc.frequency.setValueAtTime(220, now);
-            osc.frequency.linearRampToValueAtTime(110, now + 0.4);
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-            osc.start(now);
-            osc.stop(now + 0.4);
+            // Sad descending jingle
+            const melody = [440.00, 415.30, 392.00, 349.23];
+            melody.forEach((freq, idx) => {
+                const noteOsc = audioCtx.createOscillator();
+                const noteGain = audioCtx.createGain();
+                noteOsc.type = "sawtooth";
+                noteOsc.frequency.setValueAtTime(freq, now + idx * 0.18);
+                noteOsc.connect(noteGain);
+                noteGain.connect(audioCtx.destination);
+                noteGain.gain.setValueAtTime(0.12, now + idx * 0.18);
+                noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.18 + 0.3);
+                noteOsc.start(now + idx * 0.18);
+                noteOsc.stop(now + idx * 0.18 + 0.3);
+            });
         }
     }
 
@@ -419,558 +439,707 @@
 
         const now = audioCtx.currentTime;
 
-        // 1. Create simulated crowd white noise
-        const bufferSize = audioCtx.sampleRate * 2.0; // 2s loop
+        // White noise for ambient wind/crowd
+        const bufferSize = audioCtx.sampleRate * 2.0;
         const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
             data[i] = Math.random() * 2 - 1;
         }
 
-        crowdNoiseSource = audioCtx.createBufferSource();
-        crowdNoiseSource.buffer = buffer;
-        crowdNoiseSource.loop = true;
+        crowdCheerSource = audioCtx.createBufferSource();
+        crowdCheerSource.buffer = buffer;
+        crowdCheerSource.loop = true;
 
-        // Create lowpass filter to make it sound like a crowd in a stadium
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = "bandpass";
-        filter.frequency.setValueAtTime(450, now);
-        filter.Q.setValueAtTime(1.2, now);
+        const bandpass = audioCtx.createBiquadFilter();
+        bandpass.type = "bandpass";
+        bandpass.frequency.setValueAtTime(350, now);
+        bandpass.Q.setValueAtTime(0.8, now);
 
-        crowdGainNode = audioCtx.createGain();
-        crowdGainNode.gain.setValueAtTime(0.03, now); // start quiet
+        crowdCheerGain = audioCtx.createGain();
+        crowdCheerGain.gain.setValueAtTime(0.04, now); // quiet wind at start
 
-        crowdNoiseSource.connect(filter);
-        filter.connect(crowdGainNode);
-        crowdGainNode.connect(audioCtx.destination);
-        crowdNoiseSource.start(now);
-
-        // 2. Horse Galloping Footsteps loop sound
-        let gallopCounter = 0;
-        gallopInterval = setInterval(() => {
-            if (!raceInProgress) return;
-            
-            // Get leading horse's speed to adjust footstep rhythm
-            let maxSpeed = 0;
-            HORSES.forEach(h => {
-                if (!h.finished && h.currentSpeed > maxSpeed) {
-                    maxSpeed = h.currentSpeed;
-                }
-            });
-
-            // Trigger footstep thump sound
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = "triangle";
-            
-            // double thump sound (gallop beat: da-dum ... da-dum)
-            const pitch = 50 + Math.random() * 10;
-            osc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.05);
-            
-            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.06);
-
-            // Slightly staggered double tap
-            setTimeout(() => {
-                if (!raceInProgress) return;
-                const osc2 = audioCtx.createOscillator();
-                const gain2 = audioCtx.createGain();
-                osc2.type = "triangle";
-                osc2.frequency.setValueAtTime(pitch - 5, audioCtx.currentTime);
-                osc2.frequency.exponentialRampToValueAtTime(15, audioCtx.currentTime + 0.04);
-                
-                gain2.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
-                
-                osc2.connect(gain2);
-                gain2.connect(audioCtx.destination);
-                osc2.start();
-                osc2.stop(audioCtx.currentTime + 0.05);
-            }, 80);
-
-        }, 220); // base galloping rate
-    }
-
-    function adjustCrowdVolume(intensity) {
-        // intensity is a value from 0 to 1 representing proximity to finish line
-        if (crowdGainNode && audioCtx) {
-            const vol = 0.03 + intensity * 0.15; // scales up to 0.18 max volume
-            crowdGainNode.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.3);
-        }
+        crowdCheerSource.connect(bandpass);
+        bandpass.connect(crowdCheerGain);
+        crowdCheerGain.connect(audioCtx.destination);
+        crowdCheerSource.start(now);
     }
 
     function stopRaceAudio() {
-        if (crowdNoiseSource) {
-            try { crowdNoiseSource.stop(); } catch(e) {}
-            crowdNoiseSource = null;
-        }
-        if (gallopInterval) {
-            clearInterval(gallopInterval);
-            gallopInterval = null;
+        if (crowdCheerSource) {
+            try { crowdCheerSource.stop(); } catch(e) {}
+            crowdCheerSource = null;
         }
     }
 
     /* ==========================================================================
-       BETTING LOGIC
+       GAME FLOW & STATE MANAGEMENT
        ========================================================================== */
-    function placeBet(horseId) {
-        if (selectedChip <= 0) return;
-
-        // Check if balance is enough
-        if (playerCoins < selectedChip) {
-            selectedChip = playerCoins; // set to maximum remaining
-            if (playerCoins === 0) return;
-        }
-
-        // Record bet
-        if (!activeBets[horseId]) {
-            activeBets[horseId] = 0;
-        }
-        activeBets[horseId] += selectedChip;
-        playerCoins -= selectedChip;
-        totalBet += selectedChip;
-
-        // Play chip sound
-        playSynthesizedSound("chip");
-
-        // Update UI
-        updateUIDisplay();
-    }
-
-    function clearBets() {
-        // Return bets to balance
-        playerCoins += totalBet;
-        activeBets = {};
-        totalBet = 0;
-        updateUIDisplay();
-    }
-
-    function updateUIDisplay() {
-        // Balance elements
-        const coinsEl = document.getElementById("derby-player-coin");
-        const betEl = document.getElementById("derby-current-bet");
-        const outcomeEl = document.getElementById("derby-last-outcome");
-
-        if (coinsEl) coinsEl.textContent = playerCoins;
-        if (betEl) betEl.textContent = totalBet;
-
-        // Reset bet status indicator on spots
-        HORSES.forEach(horse => {
-            const spot = document.querySelector(`.derby-bet-spot[data-horse-id="${horse.id}"]`);
-            const betText = document.getElementById(`spot-bet-${horse.id}`);
-            
-            if (spot) {
-                if (activeBets[horse.id]) {
-                    spot.classList.add("has-bet");
-                    if (betText) betText.textContent = `BET: ${activeBets[horse.id]}`;
-                } else {
-                    spot.classList.remove("has-bet");
-                    if (betText) betText.textContent = "";
-                }
-            }
-        });
-
-        // Enable/disable action buttons
-        const startBtn = document.getElementById("btn-derby-race");
-        const clearBtn = document.getElementById("btn-derby-clear");
-
-        if (startBtn) startBtn.disabled = (totalBet === 0 || raceInProgress);
-        if (clearBtn) clearBtn.disabled = (totalBet === 0 || raceInProgress);
-    }
-
-    /* ==========================================================================
-       SIMULATION ENGINE (PHYSICS & AI)
-       ========================================================================== */
-    function resetHorses() {
+    function resetGameState() {
+        playerZ = 0;
+        playerX = 0;
+        playerSpeed = 0;
+        playerStamina = 100;
+        playerWhipActive = false;
+        playerRank = 6;
+        finishOrder = [];
+        finishTime = 0;
+        invulnFrames = 0;
+        keys = {};
         particles = [];
-        HORSES.forEach((horse, index) => {
-            horse.x = 20; // starting line offset
-            // distribute Y coordinates evenly inside track lanes (track height: 260px, lane height: ~45px)
-            horse.y = 80 + index * 52; 
-            horse.currentSpeed = 0;
-            horse.boostCooldown = 40 + Math.random() * 80;
-            horse.boostActive = 0;
-            horse.finished = false;
-            horse.finishTime = 0;
-            horse.legPhase = Math.random() * Math.PI * 2;
+
+        // Reset all horses positions
+        HORSES[0].z = 0;
+        HORSES[0].x = 0;
+        HORSES[0].speed = 0;
+        HORSES[0].finished = false;
+
+        HORSES[1].z = 1800; // spread along Z
+        HORSES[1].x = -0.9;
+        HORSES[1].speed = 250;
+        HORSES[1].finished = false;
+        HORSES[1].targetX = -0.9;
+
+        HORSES[2].z = 700;
+        HORSES[2].x = 1.0;
+        HORSES[2].speed = 242;
+        HORSES[2].finished = false;
+        HORSES[2].targetX = 1.0;
+
+        HORSES[3].z = 2400;
+        HORSES[3].x = 0.4;
+        HORSES[3].speed = 256;
+        HORSES[3].finished = false;
+        HORSES[3].targetX = 0.4;
+
+        HORSES[4].z = 1200;
+        HORSES[4].x = -0.3;
+        HORSES[4].speed = 246;
+        HORSES[4].finished = false;
+        HORSES[4].targetX = -0.3;
+
+        HORSES[5].z = 3000;
+        HORSES[5].x = -1.3;
+        HORSES[5].speed = 260;
+        HORSES[5].finished = false;
+        HORSES[5].targetX = -1.3;
+
+        // Reset finished status
+        HORSES.forEach(h => {
+            h.finished = false;
+            h.time = 0;
+            h.legPhase = Math.random() * Math.PI * 2;
         });
-        cameraX = 0;
-        raceFinished = false;
+
+        // Hide screens
+        hideAllScreens();
     }
 
-    function startRaceSimulation() {
-        raceInProgress = true;
-        raceFinished = false;
-        resetHorses();
-        updateUIDisplay();
+    function startRaceCountdown() {
+        resetGameState();
+        raceState = "countdown";
+        countdownVal = 3;
+        showScreen("countdown");
+        updateCountdownUI();
 
-        // Clear commentary
-        commentaryQueue = [];
-        addCommentary(COMMENTARY_START[Math.floor(Math.random() * COMMENTARY_START.length)]);
+        playSynthesizedSound("tick");
 
-        // Sound FX
-        playSynthesizedSound("bell");
-        startRaceAudio();
-
-        // Start animation loop
-        lastTime = performance.now();
-        animationFrameId = requestAnimationFrame(raceLoop);
+        countdownTimer = setInterval(() => {
+            countdownVal--;
+            if (countdownVal > 0) {
+                playSynthesizedSound("tick");
+                updateCountdownUI();
+            } else if (countdownVal === 0) {
+                playSynthesizedSound("go");
+                updateCountdownUI("GO!");
+            } else {
+                clearInterval(countdownTimer);
+                hideAllScreens();
+                raceState = "racing";
+                raceStartTime = performance.now();
+                startRaceAudio();
+                
+                // Start animation loop
+                lastTime = performance.now();
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        }, 1000);
     }
 
-    function raceLoop(time) {
-        if (!raceInProgress) return;
+    function updateCountdownUI(overrideText) {
+        const textEl = document.getElementById("derby-countdown-text");
+        if (textEl) {
+            textEl.textContent = overrideText || countdownVal;
+            // Add slight bump animation
+            textEl.style.transform = "scale(1.2)";
+            setTimeout(() => {
+                textEl.style.transform = "scale(1.0)";
+            }, 200);
+        }
+    }
 
-        const dt = (time - lastTime) / 1000;
+    function showScreen(type) {
+        // Hide all screens
+        document.getElementById("derby-screen-start").style.display = "none";
+        document.getElementById("derby-screen-countdown").style.display = "none";
+        document.getElementById("derby-screen-leaderboard").style.display = "none";
+
+        // Show specific
+        if (type === "start") {
+            document.getElementById("derby-screen-start").style.display = "flex";
+        } else if (type === "countdown") {
+            document.getElementById("derby-screen-countdown").style.display = "flex";
+        } else if (type === "leaderboard") {
+            document.getElementById("derby-screen-leaderboard").style.display = "flex";
+        }
+    }
+
+    function hideAllScreens() {
+        document.getElementById("derby-screen-start").style.display = "none";
+        document.getElementById("derby-screen-countdown").style.display = "none";
+        document.getElementById("derby-screen-leaderboard").style.display = "none";
+    }
+
+    /* ==========================================================================
+       MAIN GAME LOOP & PHYSICAL CALCS
+       ========================================================================== */
+    function gameLoop(time) {
+        if (raceState !== "racing" && raceState !== "finished") return;
+
+        const dt = Math.min(0.032, (time - lastTime) / 1000); // clamp dt to prevent giant physics jumps
         lastTime = time;
 
-        // Clear canvas
-        ctx.fillStyle = "#06090e";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Physics updates
+        if (raceState === "racing") {
+            updatePlayerPhysics(dt);
+            updateNPCPhysics(dt);
+            checkCollisions();
+            calculateRanks();
+        } else if (raceState === "finished") {
+            // decelerate slowly
+            playerSpeed = Math.max(0, playerSpeed - 150 * dt);
+            playerZ += playerSpeed * dt;
+            HORSES[0].z = playerZ;
+            HORSES[0].legPhase += (playerSpeed / 12) * dt;
 
-        // Update physics
-        updateRacePhysics(dt);
-
-        // Draw track and horses
-        drawRaceTrack();
-        drawHorses();
-        drawParticles();
-
-        // Check if all horses finished
-        const allFinished = HORSES.every(h => h.finished);
-        if (allFinished && !raceFinished) {
-            handleRaceFinished();
-        } else {
-            animationFrameId = requestAnimationFrame(raceLoop);
+            // NPCs keep running slowly
+            updateNPCPhysics(dt);
         }
+
+        // Render everything
+        renderFrame();
+
+        // Continue loop
+        animationFrameId = requestAnimationFrame(gameLoop);
     }
 
-    function updateRacePhysics(dt) {
-        let maxLeaderX = 0;
-        let leader = null;
+    function updatePlayerPhysics(dt) {
+        // Invulnerability frame ticks
+        if (invulnFrames > 0) invulnFrames--;
 
+        // Lateral Movement
+        if (keys["ArrowLeft"] || keys["a"] || keys["A"]) {
+            playerX -= LATERAL_SPEED * dt;
+        }
+        if (keys["ArrowRight"] || keys["d"] || keys["D"]) {
+            playerX += LATERAL_SPEED * dt;
+        }
+        // Clamp lateral position to stay on road
+        playerX = Math.max(-1.8, Math.min(1.8, playerX));
+        HORSES[0].x = playerX;
+
+        // Speed / Acceleration Logic
+        let maxSpeed = 240;      // Base cruising speed
+        let accelRate = 120;     // Normal acceleration
+        let decelRate = 180;     // Normal deceleration
+
+        // Stamina logic
+        if (playerWhipActive && playerStamina > 0) {
+            maxSpeed = 480;       // Whip boost speed
+            accelRate = 260;      // Faster speed rise
+            playerStamina = Math.max(0, playerStamina - 24 * dt); // drain stamina
+            
+            // Trigger whip audio sound occasionally
+            if (Math.random() < 0.08) {
+                playSynthesizedSound("whip");
+                createSparks(playerZ, playerX, "#ff00aa", 3);
+            }
+        } else {
+            // recover stamina slowly when not whipping
+            let recoveryMultiplier = 1.0;
+            // recovers faster at slower speed
+            if (playerSpeed < 180) recoveryMultiplier = 1.8;
+            playerStamina = Math.min(100, playerStamina + 9 * recoveryMultiplier * dt);
+        }
+
+        // Apply stamina penalty
+        if (playerStamina <= 0) {
+            maxSpeed = 160; // slow tired jog
+            decelRate = 220; // force deceleration quickly
+        }
+
+        // Interpolate speed
+        if (playerSpeed < maxSpeed) {
+            playerSpeed = Math.min(maxSpeed, playerSpeed + accelRate * dt);
+        } else if (playerSpeed > maxSpeed) {
+            playerSpeed = Math.max(maxSpeed, playerSpeed - decelRate * dt);
+        }
+
+        // Apply speed to advance distance
+        playerZ += playerSpeed * dt;
+        HORSES[0].z = playerZ;
+        HORSES[0].speed = playerSpeed;
+
+        // Horse leg running leg swing rate
+        HORSES[0].legPhase += (playerSpeed / 12) * dt;
+
+        // Kick up dust trail particles from hooves
+        if (Math.sin(HORSES[0].legPhase) > 0.8 && playerSpeed > 50 && Math.random() < 0.3) {
+            createDust(playerZ - 15, playerX + (Math.random() * 0.2 - 0.1), "#ffffff", 2);
+        }
+
+        // Finish line check
+        if (playerZ >= TRACK_LENGTH && !HORSES[0].finished) {
+            HORSES[0].finished = true;
+            HORSES[0].time = (performance.now() - raceStartTime) / 1000;
+            finishOrder.push(HORSES[0]);
+            
+            // End race
+            handleRaceFinish();
+        }
+
+        // Adjust crowd cheer volume based on speed and finish proximity
+        if (crowdCheerGain) {
+            const proximity = Math.min(1, playerZ / TRACK_LENGTH);
+            const volume = 0.04 + (proximity * 0.12) + (playerSpeed / 500) * 0.04;
+            crowdCheerGain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        }
+
+        // Update HUD DOM Elements
+        updateHUD();
+    }
+
+    function updateNPCPhysics(dt) {
         HORSES.forEach(horse => {
+            if (horse.isPlayer) return;
+
+            // Decelerate if finished
             if (horse.finished) {
-                // simple speed decelerate after finish
-                horse.currentSpeed = Math.max(0, horse.currentSpeed - 80 * dt);
-                horse.x += horse.currentSpeed * dt;
-                horse.legPhase += (horse.currentSpeed / 20) * dt;
+                horse.speed = Math.max(0, horse.speed - 150 * dt);
+                horse.z += horse.speed * dt;
+                horse.legPhase += (horse.speed / 12) * dt;
                 return;
             }
 
-            // --- AI Acceleration Logic ---
-            let baseSpeed = 100 + (horse.speedStat * 15); // pixels per second (around 140-215 px/s)
+            // Simple NPC AI
+            // 1. Target Lane shifting
+            horse.laneTimer -= dt;
+            if (horse.laneTimer <= 0) {
+                // Pick a new random target lane position
+                horse.targetX = (Math.random() * 2 - 1) * 1.5;
+                horse.laneTimer = 1.5 + Math.random() * 3.5;
+            }
+
+            // Move lateral position towards target lane
+            horse.x += (horse.targetX - horse.x) * 1.2 * dt;
+
+            // 2. NPC Speeds
+            let baseSpeed = 240;
+            if (horse.id === 1) baseSpeed = 252; // Neon Aura
+            if (horse.id === 3) baseSpeed = 265; // Crimson Comet
+            if (horse.id === 5) baseSpeed = 258; // Aero Swift
             
-            // Random performance factor (simulate racetrack fluctuations/waves)
-            let form = Math.sin(performance.now() / 800 + horse.id) * 20;
-            let noise = (Math.random() * 2 - 1) * 12;
+            // Random acceleration wave
+            let wave = Math.sin(performance.now() / 1500 + horse.id) * 35;
+            let targetSpeed = baseSpeed + wave;
 
-            // Fatigue effect near the end of the race
-            let fatigue = 0;
-            if (horse.x > 2000) {
-                // Lower stamina horses slow down more
-                fatigue = (6 - horse.staminaStat) * (horse.x - 2000) * 0.05;
-                if (Math.random() < 0.005 && horse.staminaStat <= 3) {
-                    addCommentary(COMMENTARY_FATIGUE[Math.floor(Math.random() * COMMENTARY_FATIGUE.length)].replace("{horse}", horse.name));
-                }
+            horse.speed += (targetSpeed - horse.speed) * 2 * dt;
+            horse.z += horse.speed * dt;
+            horse.legPhase += (horse.speed / 12) * dt;
+
+            // Dust trail
+            if (Math.sin(horse.legPhase) > 0.8 && horse.speed > 50 && Math.random() < 0.25) {
+                createDust(horse.z - 15, horse.x, "#ffffff", 1);
             }
 
-            // Turbo boost handling
-            if (horse.boostActive > 0) {
-                baseSpeed += 130; // speed injection
-                horse.boostActive -= dt;
-                
-                // Add exhaust particles
-                if (Math.random() < 0.4) {
-                    createParticles(horse.x - 10, horse.y, horse.color, 4);
-                }
-            } else {
-                // Decrease cooldown if not active
-                horse.boostCooldown -= dt;
-                if (horse.boostCooldown <= 0) {
-                    // Trigger random turbo charge based on form stat
-                    if (Math.random() < 0.35 + (horse.formStat * 0.05)) {
-                        horse.boostActive = 1.0 + Math.random() * 1.5; // active for 1-2.5s
-                        horse.boostCooldown = 150 + Math.random() * 150; // high cooldown
-                        
-                        // Add to live commentary
-                        addCommentary(COMMENTARY_BOOST[Math.floor(Math.random() * COMMENTARY_BOOST.length)].replace("{horse}", horse.name));
-                        
-                        // Spark particles burst
-                        createParticles(horse.x, horse.y, "#ffffff", 12);
-                    } else {
-                        // reset cooldown slightly
-                        horse.boostCooldown = 30 + Math.random() * 40;
-                    }
-                }
-            }
-
-            // Calculate final speed
-            let targetSpeed = Math.max(50, baseSpeed + form + noise - fatigue);
-            // Interpolate speed smoothly
-            horse.currentSpeed += (targetSpeed - horse.currentSpeed) * 3 * dt;
-            
-            // Advance distance
-            horse.x += horse.currentSpeed * dt;
-
-            // Leg animation cycle matches movement speed
-            horse.legPhase += (horse.currentSpeed / 12) * dt;
-
-            // Gallop ground spark particles
-            if (Math.sin(horse.legPhase) > 0.8 && Math.random() < 0.25) {
-                createParticles(horse.x - 25, horse.y + 15, horse.color, 2);
-            }
-
-            // Finish line check
-            if (horse.x >= TRACK_LENGTH) {
+            // Finish check
+            if (horse.z >= TRACK_LENGTH && !horse.finished) {
                 horse.finished = true;
-                horse.finishTime = performance.now();
-                
-                // Track leader finish order for commentary
-                const finishedCount = HORSES.filter(h => h.finished).length;
-                if (finishedCount === 1) {
-                    addCommentary(COMMENTARY_FINISH[Math.floor(Math.random() * COMMENTARY_FINISH.length)].replace("{winner}", horse.name));
-                }
-            }
-
-            // Find leader
-            if (horse.x > maxLeaderX) {
-                maxLeaderX = horse.x;
-                leader = horse;
+                horse.time = (performance.now() - raceStartTime) / 1000;
+                finishOrder.push(horse);
             }
         });
+    }
 
-        // Trigger dynamic commentary updates during mid-race
-        if (Math.random() < 0.008 && leader && !leader.finished) {
-            const nextHorse = [...HORSES].filter(h => h !== leader).sort((a,b) => b.x - a.x)[0];
-            const msg = COMMENTARY_MID[Math.floor(Math.random() * COMMENTARY_MID.length)]
-                .replace("{leader}", leader.name)
-                .replace("{challenger}", nextHorse.name);
-            addCommentary(msg);
-        }
+    function checkCollisions() {
+        // Invulnerable check
+        if (invulnFrames > 0) return;
 
-        // Dynamic Camera Panning
-        // Camera centers the leader but stops scrolling when finish line is in view
-        const targetCameraX = Math.max(0, Math.min(maxLeaderX - 350, TRACK_LENGTH - canvas.width + 100));
-        cameraX += (targetCameraX - cameraX) * 4 * dt;
+        HORSES.forEach(horse => {
+            if (horse.isPlayer || horse.finished) return;
 
-        // Dynamic audio volume adjustment as horses near the finish line
-        const completionPct = Math.max(0, Math.min(1, maxLeaderX / TRACK_LENGTH));
-        adjustCrowdVolume(completionPct);
+            // 3D Collision check: Z distance and X (lane) difference
+            const zDiff = horse.z - playerZ;
+            
+            // We only collide if the NPC is in front of the player (we hit them from behind)
+            if (zDiff > 0 && zDiff < 70) {
+                const xDiff = Math.abs(horse.x - playerX);
+                
+                // Lane width spans roughly -2 to +2 (total 4 units)
+                // A horse is roughly 0.3 units wide
+                if (xDiff < 0.38) {
+                    // CRASH!
+                    playSynthesizedSound("crash");
+                    playerSpeed = 60; // knock back speed
+                    invulnFrames = INVULN_MAX_FRAMES; // activate flashing/invulnerability
+                    
+                    // Spark burst particles
+                    createSparks(playerZ + 10, playerX, "#ff0000", 12);
+                    createSparks(playerZ + 10, playerX, "#ffffff", 6);
+                }
+            }
+        });
+    }
+
+    function calculateRanks() {
+        // Sort horses by distance (descending)
+        const sorted = [...HORSES].sort((a, b) => b.z - a.z);
+        playerRank = sorted.findIndex(h => h.isPlayer) + 1;
     }
 
     /* ==========================================================================
-       CANVAS RENDERING OPERATIONS
+       CANVAS PSEUDO-3D RENDER ENGINE
        ========================================================================== */
-    function drawRaceTrack() {
-        // Draw cyber track background grid lines (horizontal scroll)
-        const gridOffset = -cameraX % 40;
-        ctx.strokeStyle = "rgba(0, 240, 255, 0.03)";
-        ctx.lineWidth = 1;
-        for (let x = gridOffset; x < canvas.width; x += 40) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvas.height);
-            ctx.stroke();
-        }
+    function renderFrame() {
+        // Clear canvas
+        ctx.fillStyle = "#04060a";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw track lanes bounds
-        ctx.fillStyle = "rgba(7, 11, 18, 0.6)";
-        ctx.fillRect(0, 50, canvas.width, 270);
+        // 1. Draw Sky (synthwave night sky gradient)
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+        skyGrad.addColorStop(0, "#05070e");
+        skyGrad.addColorStop(0.6, "#180625");
+        skyGrad.addColorStop(1, "#360028");
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, canvas.width, horizonY);
 
-        ctx.strokeStyle = "rgba(0, 255, 136, 0.15)";
-        ctx.lineWidth = 2;
-        for (let i = 0; i <= 5; i++) {
-            const y = 60 + i * 52;
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
-            ctx.stroke();
+        // Draw Synthwave Sun
+        drawSynthwaveSun();
+
+        // Draw City Silhouette
+        drawCitySilhouette();
+
+        // 2. Draw Road (Pseudo-3D Segments)
+        // Segment Z spacing
+        const segmentLength = 80;
+        const startSegIdx = Math.floor(playerZ / segmentLength);
+        
+        // Draw from furthest to closest (back-to-front painter's algorithm)
+        for (let i = startSegIdx + 40; i >= startSegIdx; i--) {
+            const worldZ = i * segmentLength;
+            const relZ1 = worldZ - playerZ;
+            const relZ2 = (i + 1) * segmentLength - playerZ;
+
+            // Perspective division scale factor
+            const scale1 = focalLength / (relZ1 + focalLength);
+            const scale2 = focalLength / (relZ2 + focalLength);
+
+            // Clip road if behind camera
+            if (scale1 <= 0 || scale2 <= 0) continue;
+
+            const y1 = horizonY + (canvas.height - horizonY) * scale1;
+            const y2 = horizonY + (canvas.height - horizonY) * scale2;
+
+            // Clip if above horizon
+            if (y1 <= horizonY || y2 <= horizonY) continue;
+
+            // Lane coordinate calculations
+            const x1 = canvas.width / 2;
+            const x2 = canvas.width / 2;
+
+            const w1 = roadWidthAtBottom * scale1;
+            const w2 = roadWidthAtBottom * scale2;
+
+            // Alternating grass and asphalt colors
+            const isEven = i % 2 === 0;
             
-            // lane indicators
-            if (i < 5) {
-                ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
-                ctx.fillText(`LANE ${i+1}`, 15, y + 30);
+            // Grass fields
+            ctx.fillStyle = isEven ? "#051308" : "#081d0d"; // deep green
+            ctx.fillRect(0, Math.floor(y2), canvas.width, Math.ceil(y1 - y2));
+
+            // Road polygons
+            ctx.fillStyle = isEven ? "#0c0f16" : "#111622"; // cyber asphalt
+            ctx.beginPath();
+            ctx.moveTo(x1 - w1, y1);
+            ctx.lineTo(x2 - w2, y2);
+            ctx.lineTo(x2 + w2, y2);
+            ctx.lineTo(x1 + w1, y1);
+            ctx.fill();
+
+            // Glowing rumble strips (edges)
+            const rumbleW1 = w1 * 0.05;
+            const rumbleW2 = w2 * 0.05;
+            ctx.fillStyle = isEven ? "#00f0ff" : "#ff00aa"; // flashing neon cyan / pink
+
+            // Left rumble
+            ctx.beginPath();
+            ctx.moveTo(screenCoordX(x1 - w1, rumbleW1), y1);
+            ctx.lineTo(screenCoordX(x2 - w2, rumbleW2), y2);
+            ctx.lineTo(x2 - w2, y2);
+            ctx.lineTo(x1 - w1, y1);
+            ctx.fill();
+
+            // Right rumble
+            ctx.beginPath();
+            ctx.moveTo(x1 + w1, y1);
+            ctx.lineTo(x2 + w2, y2);
+            ctx.lineTo(screenCoordX(x2 + w2, -rumbleW2), y2);
+            ctx.lineTo(screenCoordX(x1 + w1, -rumbleW1), y1);
+            ctx.fill();
+
+            // Center lane stripes (draw dashes for lanes)
+            if (isEven) {
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+                ctx.lineWidth = 2 * scale1;
+                // draw 4 lane lines separating 5 lanes
+                for (let lane = -1.2; lane <= 1.2; lane += 0.6) {
+                    const lx1 = x1 + lane * w1;
+                    const lx2 = x2 + lane * w2;
+                    ctx.beginPath();
+                    ctx.moveTo(lx1, y1);
+                    ctx.lineTo(lx2, y2);
+                    ctx.stroke();
+                }
             }
-        }
 
-        // Draw Start Line (if in camera view)
-        const startX = 60 - cameraX;
-        if (startX > -20 && startX < canvas.width + 20) {
-            ctx.strokeStyle = "#ff00aa";
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(startX, 60);
-            ctx.lineTo(startX, 320);
-            ctx.stroke();
-            
-            // start gate text
-            ctx.fillStyle = "#ff00aa";
-            ctx.font = "bold 10px monospace";
-            ctx.fillText("START GATE", startX - 30, 50);
-        }
-
-        // Draw Finish Line (if in camera view)
-        const finishX = TRACK_LENGTH - cameraX;
-        if (finishX > -50 && finishX < canvas.width + 50) {
-            // Checkered finish line pattern
-            ctx.strokeStyle = "#00ff88";
-            ctx.lineWidth = 8;
-            ctx.beginPath();
-            ctx.moveTo(finishX, 60);
-            ctx.lineTo(finishX, 320);
-            ctx.stroke();
-
-            // Glow effect
-            ctx.strokeStyle = "rgba(0, 255, 136, 0.4)";
-            ctx.lineWidth = 16;
-            ctx.beginPath();
-            ctx.moveTo(finishX, 60);
-            ctx.lineTo(finishX, 320);
-            ctx.stroke();
-
-            ctx.fillStyle = "#00ff88";
-            ctx.font = "bold 12px 'Outfit', sans-serif";
-            ctx.fillText("FINISH LINE", finishX - 35, 50);
-        }
-
-        // Racetrack Distance markers along the top edge
-        ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-        ctx.font = "9px monospace";
-        for (let dist = 400; dist < TRACK_LENGTH; dist += 400) {
-            const markerX = dist - cameraX;
-            if (markerX > 0 && markerX < canvas.width) {
+            // Draw Finish Line Checkered Banner on Road if visible
+            const finishSegIdx = Math.floor(TRACK_LENGTH / segmentLength);
+            if (i === finishSegIdx) {
+                ctx.fillStyle = "#00ff88"; // glowing finish line
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "#00ff88";
                 ctx.beginPath();
-                ctx.arc(markerX, 58, 2, 0, Math.PI * 2);
+                ctx.moveTo(x1 - w1, y1);
+                ctx.lineTo(x2 - w2, y2);
+                ctx.lineTo(x2 + w2, y2);
+                ctx.lineTo(x1 + w1, y1);
                 ctx.fill();
-                ctx.fillText(`${dist}m`, markerX - 10, 48);
+                ctx.shadowBlur = 0; // reset
             }
+        }
+
+        // 3. Draw Particles
+        renderParticles();
+
+        // 4. Draw Horses (Sorted by Z distance so back-to-front rendering works perfectly)
+        const sortedHorses = [...HORSES].sort((a, b) => b.z - a.z);
+        sortedHorses.forEach(horse => {
+            draw3DHorse(horse);
+        });
+    }
+
+    function screenCoordX(x, width) {
+        return x + width;
+    }
+
+    function drawSynthwaveSun() {
+        ctx.save();
+        const centerX = canvas.width / 2;
+        const centerY = horizonY - 10;
+        const rad = 50;
+
+        // Glow
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = "#ff00aa";
+
+        // Yellow to Magenta gradient
+        const sunGrad = ctx.createLinearGradient(centerX, centerY - rad, centerX, centerY + rad);
+        sunGrad.addColorStop(0, "#fffb00");
+        sunGrad.addColorStop(0.5, "#ff007b");
+        sunGrad.addColorStop(1, "#5b0082");
+        ctx.fillStyle = sunGrad;
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, rad, Math.PI, 0); // half circle above horizon
+        ctx.fill();
+
+        ctx.restore();
+
+        // Sun scanline slits (classic synthwave styling)
+        ctx.fillStyle = "#04060a";
+        for (let y = centerY - rad; y < centerY; y += 6) {
+            // make lines progressively wider at the bottom
+            const lineH = 2.5 * ((y - (centerY - rad)) / rad);
+            ctx.fillRect(centerX - rad - 10, y, rad * 2 + 20, lineH);
         }
     }
 
-    function drawHorses() {
+    function drawCitySilhouette() {
         ctx.save();
+        ctx.fillStyle = "#0c0514";
+        ctx.strokeStyle = "rgba(0, 240, 255, 0.1)";
+        ctx.lineWidth = 1;
+
+        // Draw simple neon skyscrapers blocky skyline on horizon
+        const skyline = [
+            {w: 30, h: 40}, {w: 20, h: 60}, {w: 40, h: 25}, {w: 15, h: 80},
+            {w: 25, h: 50}, {w: 50, h: 30}, {w: 35, h: 70}, {w: 20, h: 45}
+        ];
+
+        let curX = 150;
+        // repeat skyline
+        for (let r = 0; r < 2; r++) {
+            skyline.forEach(build => {
+                ctx.fillRect(curX, horizonY - build.h, build.w, build.h);
+                ctx.strokeRect(curX, horizonY - build.h, build.w, build.h);
+                curX += build.w + 2;
+            });
+            curX += 40;
+        }
+
+        // Draw horizon overlay glow line
+        ctx.strokeStyle = "#00f0ff";
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#00f0ff";
+        ctx.beginPath();
+        ctx.moveTo(0, horizonY);
+        ctx.lineTo(canvas.width, horizonY);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function draw3DHorse(horse) {
+        // Rel Z from camera
+        const relZ = horse.z - playerZ;
+
+        // Skip drawing if horse is behind player camera view
+        if (relZ < -60) return;
+
+        // Perspective scale factor
+        const scale = focalLength / (relZ + focalLength);
+
+        // Convert world Z & X lane coordinates to screen coordinates
+        const screenY = horizonY + (canvas.height - horizonY) * scale;
+        const roadWidth = roadWidthAtBottom * scale;
+        const screenX = canvas.width / 2 + horse.x * roadWidth;
+
+        // Clip if off screen
+        if (screenY > canvas.height + 60 || screenX < -100 || screenX > canvas.width + 100) return;
+
+        // Collision blink effect for player horse
+        if (horse.isPlayer && invulnFrames > 0 && Math.floor(invulnFrames / 4) % 2 === 0) {
+            return; // skip drawing this frame (blink)
+        }
+
+        ctx.save();
+        ctx.translate(screenX, screenY);
+        ctx.scale(scale, scale);
+
+        // --- Render Horse inside Scaled Context (centered at 0, 0) ---
         
-        HORSES.forEach(horse => {
-            const screenX = horse.x - cameraX;
-            const screenY = horse.y;
+        // 1. Footprint ground shadow
+        ctx.fillStyle = "rgba(0,0,0,0.4)";
+        ctx.beginPath();
+        ctx.ellipse(0, 15, 30, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
 
-            // Skip rendering if way off-screen
-            if (screenX < -100 || screenX > canvas.width + 100) return;
+        // 2. Horse body stroke neon styling
+        ctx.strokeStyle = horse.color;
+        ctx.lineWidth = 3.5;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = horse.color;
 
-            // Draw shadow beneath horse
-            ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-            ctx.beginPath();
-            ctx.ellipse(screenX - 8, screenY + 16, 25, 6, 0, 0, Math.PI*2);
-            ctx.fill();
+        // 3. Draw cyber horse components
+        ctx.beginPath();
 
-            // Set glow styling for cyber horses
-            ctx.strokeStyle = horse.color;
-            ctx.lineWidth = 3;
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = horse.color;
+        // Capsule Body
+        ctx.ellipse(-8, -2, 22, 10, 0, 0, Math.PI * 2);
 
-            // Draw Cybernetic Horse Shape
-            ctx.beginPath();
-            
-            // 1. Body main capsule
-            // center body at (screenX - 10, screenY)
-            ctx.ellipse(screenX - 10, screenY, 18, 9, 0, 0, Math.PI * 2);
-            
-            // 2. Neck
-            ctx.moveTo(screenX + 2, screenY - 5);
-            ctx.lineTo(screenX + 12, screenY - 16);
-            
-            // 3. Head
-            ctx.lineTo(screenX + 20, screenY - 14);
-            ctx.lineTo(screenX + 16, screenY - 8);
-            ctx.lineTo(screenX + 8, screenY - 6);
-            
-            // 4. Ears
-            ctx.moveTo(screenX + 11, screenY - 17);
-            ctx.lineTo(screenX + 13, screenY - 22);
-            ctx.lineTo(screenX + 15, screenY - 16);
+        // Neck
+        ctx.moveTo(8, -5);
+        ctx.lineTo(18, -20);
 
-            ctx.stroke();
+        // Head
+        ctx.lineTo(28, -18);
+        ctx.lineTo(24, -10);
+        ctx.lineTo(13, -7);
 
-            // Reset glow specifically for structural details
-            ctx.shadowBlur = 0;
-            ctx.lineWidth = 2.5;
+        // Ears
+        ctx.moveTo(17, -21);
+        ctx.lineTo(20, -28);
+        ctx.lineTo(22, -20);
 
-            // 5. Draw Running Legs (galloping math calculations)
-            const legSwing = Math.sin(horse.legPhase);
-            const legSwingOpp = -Math.sin(horse.legPhase);
+        ctx.stroke();
 
-            // Back leg 1 (Left)
-            drawLeg(screenX - 22, screenY + 5, legSwing, horse.color);
-            // Back leg 2 (Right)
-            drawLeg(screenX - 17, screenY + 5, legSwingOpp, horse.color, true);
+        // Turn off glow blur for inner details
+        ctx.shadowBlur = 0;
+        ctx.lineWidth = 3;
 
-            // Front leg 1 (Left)
-            drawLeg(screenX + 2, screenY + 5, legSwingOpp + 0.3, horse.color);
-            // Front leg 2 (Right)
-            drawLeg(screenX + 7, screenY + 5, legSwing + 0.3, horse.color, true);
+        // 4. Draw articulated Running Legs
+        const swing = Math.sin(horse.legPhase);
+        const swingOpp = -Math.sin(horse.legPhase);
 
-            // 6. Cyber Tail (Wavy sine wave line)
-            ctx.strokeStyle = horse.color;
-            ctx.beginPath();
-            ctx.moveTo(screenX - 28, screenY - 2);
-            const tailWhip = Math.cos(horse.legPhase * 2) * 5;
-            ctx.quadraticCurveTo(
-                screenX - 38, screenY - 5 + tailWhip,
-                screenX - 44, screenY + 2 + tailWhip
-            );
-            ctx.stroke();
+        // Back leg 1
+        drawLeg(-18, 5, swing, horse.color);
+        // Back leg 2
+        drawLeg(-14, 5, swingOpp, horse.color, true);
 
-            // 7. Horse Number Tag on body
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 9px monospace";
-            ctx.shadowColor = "#000";
-            ctx.shadowBlur = 3;
-            ctx.fillText(horse.number, screenX - 15, screenY + 3);
-            ctx.shadowBlur = 0;
+        // Front leg 1
+        drawLeg(5, 5, swingOpp + 0.3, horse.color);
+        // Front leg 2
+        drawLeg(10, 5, swing + 0.3, horse.color, true);
 
-            // 8. If boost is active, draw a cyan fire/exhaust particle shape at the back
-            if (horse.boostActive > 0) {
-                ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-                ctx.beginPath();
-                ctx.moveTo(screenX - 32, screenY);
-                ctx.lineTo(screenX - 48 - (Math.random() * 15), screenY - 3 + (Math.random()*6));
-                ctx.lineTo(screenX - 32, screenY - 6);
-                ctx.closePath();
-                ctx.fill();
-            }
-        });
-        
+        // 5. Tail
+        ctx.beginPath();
+        ctx.moveTo(-28, -5);
+        const tailWhip = Math.cos(horse.legPhase * 2) * 5;
+        ctx.quadraticCurveTo(-38, -10 + tailWhip, -45, -3 + tailWhip);
+        ctx.stroke();
+
+        // 6. Jockey/Rider outline (adds giant arcade character depth)
+        ctx.fillStyle = "#0c0f17";
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // rider hunched forward
+        ctx.moveTo(-10, -10);
+        ctx.quadraticCurveTo(-14, -26, 0, -28); // back
+        ctx.lineTo(8, -23); // neck
+        ctx.lineTo(4, -12); // chest
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Helmet/Visor
+        ctx.fillStyle = horse.color;
+        ctx.beginPath();
+        ctx.arc(1, -29, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 7. Horse tag number
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 10px monospace";
+        ctx.fillText(horse.number, -14, 2);
+
         ctx.restore();
     }
 
     function drawLeg(startX, startY, swing, color, isSecondary) {
         ctx.save();
         ctx.strokeStyle = color;
-        // make secondary legs slightly dimmer to give depth perception
-        if (isSecondary) {
-            ctx.strokeStyle = color + "99"; 
-        }
-        ctx.lineWidth = 3;
+        if (isSecondary) ctx.strokeStyle = color + "99"; // opacity leg behind
+        ctx.lineWidth = 3.5;
 
-        // Joint math (thigh and shin joint)
-        const thighLength = 12;
-        const shinLength = 10;
-        
-        // joint position
-        const jointX = startX + Math.sin(swing) * 8;
-        const jointY = startY + Math.cos(swing) * 8 + 4;
-        
-        // hoof position
-        const hoofX = jointX + Math.sin(swing - 0.5) * shinLength;
-        const hoofY = jointY + Math.cos(swing - 0.5) * shinLength;
+        const thigh = 14;
+        const shin = 11;
+
+        const jointX = startX + Math.sin(swing) * 9;
+        const jointY = startY + Math.cos(swing) * 9 + 4;
+
+        const hoofX = jointX + Math.sin(swing - 0.4) * shin;
+        const hoofY = jointY + Math.cos(swing - 0.4) * shin;
 
         ctx.beginPath();
         ctx.moveTo(startX, startY);
@@ -981,161 +1150,253 @@
     }
 
     /* ==========================================================================
-       PARTICLE PHYSICS SYSTEM
+       PARTICLE SYSTEMS (SPARKS / DUST)
        ========================================================================== */
-    function createParticles(x, y, color, count) {
+    function createSparks(z, x, color, count) {
         for (let i = 0; i < count; i++) {
             particles.push({
-                x: x,
-                y: y + 10 + (Math.random() * 8 - 4),
-                vx: -50 - Math.random() * 100, // speed shoot left
-                vy: (Math.random() * 2 - 1) * 30,  // slight vertical drift
+                type: "spark",
+                z: z,
+                x: x + (Math.random() * 0.4 - 0.2),
+                y: 10 + Math.random() * 15,
+                vz: -100 - Math.random() * 300,
+                vx: (Math.random() * 2 - 1) * 3,
+                vy: -80 - Math.random() * 120, // bounce up
                 color: color,
                 alpha: 1.0,
-                decay: 1.5 + Math.random() * 2.0, // fade out speed
-                size: 1.5 + Math.random() * 2
+                decay: 2.0 + Math.random() * 3.0,
+                size: 2 + Math.random() * 3
             });
         }
     }
 
-    function drawParticles() {
+    function createDust(z, x, color, count) {
+        for (let i = 0; i < count; i++) {
+            particles.push({
+                type: "dust",
+                z: z,
+                x: x,
+                y: 15 + Math.random() * 5,
+                vz: -200 - Math.random() * 100,
+                vx: (Math.random() * 2 - 1) * 0.5,
+                vy: -5 - Math.random() * 15, // float up slightly
+                color: "rgba(255, 255, 255, 0.15)",
+                alpha: 0.6,
+                decay: 1.0 + Math.random() * 2.0,
+                size: 4 + Math.random() * 6
+            });
+        }
+    }
+
+    function renderParticles() {
+        const now = performance.now();
         particles.forEach((p, idx) => {
-            p.x += p.vx * 0.016; // simulate constant 60fps dt
+            // Apply physics
+            p.z += p.vz * 0.016;
+            p.x += p.vx * 0.016;
             p.y += p.vy * 0.016;
             p.alpha -= p.decay * 0.016;
+
+            // Gravity effect on spark bounces
+            if (p.type === "spark") {
+                p.vy += 450 * 0.016; // pull down
+            }
 
             if (p.alpha <= 0) {
                 particles.splice(idx, 1);
                 return;
             }
 
-            // draw particles relative to camera view
-            const screenX = p.x - cameraX;
-            if (screenX > 0 && screenX < canvas.width) {
+            // Draw particle
+            const relZ = p.z - playerZ;
+            if (relZ < -30 || relZ > 1000) return;
+
+            const scale = focalLength / (relZ + focalLength);
+            const screenY = horizonY + (canvas.height - horizonY) * scale + (p.y * scale);
+            const roadWidth = roadWidthAtBottom * scale;
+            const screenX = canvas.width / 2 + p.x * roadWidth;
+
+            if (screenX > 0 && screenX < canvas.width && screenY > horizonY && screenY < canvas.height) {
+                ctx.save();
                 ctx.fillStyle = p.color;
                 ctx.globalAlpha = p.alpha;
                 ctx.beginPath();
-                ctx.arc(screenX, p.y, p.size, 0, Math.PI * 2);
+                ctx.arc(screenX, screenY, p.size * scale, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.restore();
             }
         });
-        ctx.globalAlpha = 1.0; // reset transparency
+        ctx.globalAlpha = 1.0;
     }
 
     /* ==========================================================================
-       LIVE COMMENTARY GENERATOR
+       UI INTERFACE UPDATES & LEADERBOARD
        ========================================================================== */
-    function addCommentary(text) {
-        commentaryQueue.push(text);
-        if (!commentaryTimer) {
-            processCommentaryQueue();
+    function updateHUD() {
+        // HUD Overlay elements
+        const spFill = document.getElementById("derby-hud-sp-fill");
+        const stFill = document.getElementById("derby-hud-st-fill");
+        const distEl = document.getElementById("derby-hud-dist");
+        const rankEl = document.getElementById("derby-hud-rank");
+
+        // Stamina bar width
+        if (stFill) stFill.style.width = `${playerStamina}%`;
+
+        // Speed bar width (percentage of 500 max speed)
+        if (spFill) {
+            const spPct = Math.min(100, (playerSpeed / 480) * 100);
+            spFill.style.width = `${spPct}%`;
+        }
+
+        // Distance remaining in meters (convert world Z to meters, e.g. Z/20)
+        if (distEl) {
+            const meters = Math.max(0, Math.ceil((TRACK_LENGTH - playerZ) / 20));
+            distEl.textContent = `${meters}m`;
+        }
+
+        // Current Rank
+        if (rankEl) {
+            let suffix = "th";
+            if (playerRank === 1) suffix = "st";
+            if (playerRank === 2) suffix = "nd";
+            if (playerRank === 3) suffix = "rd";
+            rankEl.textContent = `${playerRank}/${HORSES.length}`;
         }
     }
 
-    function processCommentaryQueue() {
-        const consoleText = document.getElementById("derby-commentary-text");
-        if (commentaryQueue.length > 0) {
-            currentCommentaryText = commentaryQueue.shift();
-            if (consoleText) {
-                consoleText.textContent = currentCommentaryText;
-                
-                // Add retro sound for commentary update (typewriter bleep)
-                if (audioCtx && audioCtx.state !== "suspended") {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = "sine";
-                    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.03);
+    function handleRaceFinish() {
+        raceState = "finished";
+        finishTime = (performance.now() - raceStartTime) / 1000;
+        
+        // Let remaining NPCs finish
+        setTimeout(() => {
+            // Force finish all who haven't
+            HORSES.forEach(h => {
+                if (!h.finished) {
+                    h.finished = true;
+                    h.time = finishTime + 5 + Math.random() * 5;
+                    finishOrder.push(h);
                 }
-            }
-            // Delay next message
-            commentaryTimer = setTimeout(processCommentaryQueue, 2800);
-        } else {
-            commentaryTimer = null;
-        }
+            });
+
+            // Stop animations
+            cancelAnimationFrame(animationFrameId);
+            stopRaceAudio();
+
+            // Evaluate game outcome & Show leaderboard
+            showFinalLeaderboard();
+        }, 3000);
     }
 
-    /* ==========================================================================
-       POST-RACE EVALUATION & ODDS PAYOUT
-       ========================================================================== */
-    function handleRaceFinished() {
-        raceInProgress = false;
-        raceFinished = true;
-        stopRaceAudio();
+    function showFinalLeaderboard() {
+        const boardBody = document.getElementById("derby-leaderboard-body");
+        const statusText = document.getElementById("derby-result-status");
+        
+        if (!boardBody) return;
+        boardBody.innerHTML = "";
 
-        // Sort horses by finishTime to find winner
-        const leaderboard = [...HORSES].sort((a, b) => a.finishTime - b.finishTime);
-        const winner = leaderboard[0];
+        // Sort finished horses by time
+        const sorted = [...finishOrder].sort((a, b) => a.time - b.time);
+        
+        // Find player final standing
+        const playerFinalRank = sorted.findIndex(h => h.isPlayer) + 1;
 
-        // Sound outcome
-        let playerWon = false;
-        let payout = 0;
-
-        if (activeBets[winner.id]) {
-            payout = Math.floor(activeBets[winner.id] * winner.odds);
-            playerCoins += payout;
-            playerWon = true;
-        }
-
-        // Add to history roadmap (max 8 entries)
-        resultsHistory.unshift({
-            number: winner.number,
-            color: winner.color
-        });
-        if (resultsHistory.length > 8) {
-            resultsHistory.pop();
-        }
-        updateRoadmap();
-
-        // Render result text in modal popup inside commentary
-        let resultMsg = "";
-        if (playerWon) {
-            resultMsg = `ANDA MENANG! ${winner.name} juara 1. Anda menerima payout ${payout} koin!`;
+        // Victory fanfares
+        if (playerFinalRank === 1) {
+            if (statusText) {
+                statusText.textContent = "🏆 CHAMPION! 🏆";
+                statusText.className = "derby-result-status win";
+            }
+            playSynthesizedSound("win");
+        } else if (playerFinalRank <= 3) {
+            if (statusText) {
+                statusText.textContent = `🎉 POSISI KE-${playerFinalRank}! 🎉`;
+                statusText.className = "derby-result-status win";
+            }
             playSynthesizedSound("win");
         } else {
-            resultMsg = `Balapan selesai. ${winner.name} juara 1. Taruhan Anda kalah.`;
+            if (statusText) {
+                statusText.textContent = "BALAPAN SELESAI";
+                statusText.className = "derby-result-status lose";
+            }
             playSynthesizedSound("lose");
         }
-        
-        // Push final result to commentary immediately
-        commentaryQueue = []; // clear remaining queue
-        if (commentaryTimer) clearTimeout(commentaryTimer);
-        commentaryTimer = null;
-        addCommentary(resultMsg);
 
-        // Update dashboard status
-        const outcomeEl = document.getElementById("derby-last-outcome");
-        if (outcomeEl) {
-            outcomeEl.textContent = `${winner.name} (#${winner.number})`;
-            outcomeEl.style.color = winner.color;
-        }
+        // Fill leaderboard rows
+        sorted.forEach((horse, idx) => {
+            const row = document.createElement("tr");
+            if (horse.isPlayer) {
+                row.className = "player-row";
+            }
 
-        // Reset active bets
-        activeBets = {};
-        totalBet = 0;
+            row.innerHTML = `
+                <td>${idx + 1}</td>
+                <td><span style="color: ${horse.color}; font-weight: bold;">■</span> ${horse.name}</td>
+                <td>#${horse.number}</td>
+                <td>${horse.time.toFixed(2)}s</td>
+            `;
+            boardBody.appendChild(row);
+        });
 
-        // Save coins if needed
-        updateUIDisplay();
+        // Show Overlay Screen
+        showScreen("leaderboard");
     }
 
-    function updateRoadmap() {
-        const roadmapGroup = document.getElementById("derby-roadmap-group");
-        if (!roadmapGroup) return;
+    /* ==========================================================================
+       ARCADE MENU ARTWORK DRAWING
+       ========================================================================== */
+    function drawMenuBackground() {
+        if (!ctx) return;
+        ctx.fillStyle = "#05080e";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        roadmapGroup.innerHTML = "";
-        resultsHistory.forEach(hist => {
-            const dot = document.createElement("span");
-            dot.className = "derby-roadmap-dot";
-            dot.textContent = hist.number;
-            dot.style.borderColor = hist.color;
-            dot.style.color = hist.color;
-            dot.style.boxShadow = `0 0 5px ${hist.color}33`;
-            roadmapGroup.appendChild(dot);
-        });
+        // Draw sky gradient
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+        skyGrad.addColorStop(0, "#05070e");
+        skyGrad.addColorStop(0.7, "#180625");
+        skyGrad.addColorStop(1, "#360028");
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, canvas.width, horizonY);
+
+        drawSynthwaveSun();
+        drawCitySilhouette();
+
+        // Draw grid floor perspective lines (static menu layout)
+        ctx.strokeStyle = "rgba(0, 240, 255, 0.15)";
+        ctx.lineWidth = 1;
+        
+        // horizontal pavement lines
+        for (let y = horizonY; y < canvas.height; y += 15) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+
+        // vanishing perspective lines
+        for (let x = -300; x <= canvas.width + 300; x += 100) {
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, horizonY);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+
+        // Render stationary logo horse outline
+        ctx.save();
+        ctx.translate(canvas.width / 2, 240);
+        ctx.scale(1.8, 1.8);
+        ctx.strokeStyle = "#00f0ff";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#00f0ff";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(-8, -2, 20, 10, 0, 0, Math.PI * 2);
+        ctx.moveTo(8, -5);
+        ctx.lineTo(18, -20);
+        ctx.lineTo(28, -18);
+        ctx.lineTo(24, -10);
+        ctx.lineTo(13, -7);
+        ctx.stroke();
+        ctx.restore();
     }
 })();

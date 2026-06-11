@@ -552,10 +552,10 @@
                         </div>
                     </article>
 
-                    <!-- Project 5: Cyber Derby Royale -->
+                    <!-- Project 5: Cyber Rider Derby -->
                     <article class="project-card" data-category="game">
                         <div class="project-img-box">
-                            <img src="assets/cyber_derby_royale.png" alt="Cyber Derby Royale - Game Banner" class="project-img">
+                            <img src="assets/cyber_derby_royale.png" alt="Cyber Rider Derby - Game Banner" class="project-img">
                             <div class="project-overlay">
                                 <div class="project-actions">
                                     <a href="#" class="btn-icon-link btn-play-derby" aria-label="Mainkan Game"><i data-lucide="play"></i></a>
@@ -566,9 +566,9 @@
                             </div>
                         </div>
                         <div class="project-info">
-                            <span class="project-tag">Game JS / Canvas / Web Audio</span>
-                            <h3 class="project-card-title">Cyber Derby Royale</h3>
-                            <p class="project-card-desc">Game pacuan kuda virtual bertema cyberpunk neon. Dilengkapi simulasi balap Canvas 2D dengan kamera dinamis, live commentary kecerdasan buatan sederhana, papan taruhan odds bervariasi, serta audio derap kaki yang disintesis secara prosedural.</p>
+                            <span class="project-tag">Game JS / Canvas 3D / Web Audio</span>
+                            <h3 class="project-card-title">Cyber Rider Derby</h3>
+                            <p class="project-card-desc">Game balapan kuda siber interaktif bergaya pseudo-3D. Kendalikan kuda Anda secara manual untuk meliuk menghindari lawan, kelola bilah akselerasi dan stamina, serta rasakan keseruan efek suara sintesis prosedural (cambukan & tabrakan) Web Audio API.</p>
                             <div class="project-tech-stack">
                                 <span>HTML5 Canvas</span>
                                 <span>JavaScript</span>
@@ -935,7 +935,7 @@
         </div>
     </div>
 
-    <!-- Cyber Derby Royale Game Modal -->
+    <!-- Cyber Rider Derby Game Modal -->
     <div class="derby-modal" id="derby-modal">
         <div class="derby-modal-content">
             <button class="derby-modal-close" id="derby-modal-close" aria-label="Tutup Game">
@@ -944,7 +944,7 @@
             
             <div class="derby-modal-header">
                 <span class="derby-title-text">
-                    <i data-lucide="trophy"></i> Cyber Derby Royale
+                    <i data-lucide="trophy"></i> Cyber Rider Derby
                 </span>
                 <span class="derby-title-tag">Neon Arena</span>
                 
@@ -955,120 +955,116 @@
             
             <!-- Game Racetrack Viewport -->
             <div class="derby-viewport">
+                <!-- Racetrack Canvas -->
                 <canvas id="derby-canvas"></canvas>
-                <!-- Live Commentary Overlay Console -->
-                <div class="derby-commentary-console">
-                    <span class="derby-commentary-label">Commentator:</span>
-                    <span class="derby-commentary-text" id="derby-commentary-text">Memuat arena pacuan...</span>
-                </div>
-            </div>
-            
-            <!-- Dashboard (Coins / Current Bet / Last Outcome) -->
-            <div class="derby-dashboard">
-                <div class="derby-stat-card">
-                    <span class="derby-stat-label">Saldo Anda</span>
-                    <span class="derby-stat-val green" id="derby-player-coin">1000</span>
-                </div>
-                <div class="derby-stat-card">
-                    <span class="derby-stat-label">Total Taruhan</span>
-                    <span class="derby-stat-val blue" id="derby-current-bet">0</span>
-                </div>
-                <div class="derby-stat-card">
-                    <span class="derby-stat-label">Hasil Terakhir</span>
-                    <span class="derby-stat-val magenta" id="derby-last-outcome">-</span>
-                </div>
-            </div>
-            
-            <!-- Betting board & Controls -->
-            <div class="derby-betting-area">
-                <div class="derby-board-header">
-                    <span class="derby-board-title">Pasang Taruhan Anda (Klik pada Kartu Kuda)</span>
-                    <div class="derby-roadmap" id="derby-roadmap">
-                        <span class="derby-roadmap-title">RIWAYAT:</span>
-                        <div id="derby-roadmap-group" style="display: flex; gap: 4px;">
-                            <!-- populated by JS -->
+
+                <!-- Top HUD Indicators Overlay -->
+                <div class="derby-hud-overlay">
+                    <!-- Speed / Stamina Bars (SP / ST) -->
+                    <div class="derby-hud-stats-box">
+                        <div class="derby-hud-bar-row">
+                            <span class="derby-hud-bar-label">SP</span>
+                            <div class="derby-hud-bar-bg">
+                                <div class="derby-hud-bar-fill sp-fill" id="derby-hud-sp-fill"></div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                
-                <div class="derby-grid-board">
-                    <!-- Horse 1 Spot -->
-                    <div class="derby-bet-spot" data-horse-id="1" style="--horse-color: #00f0ff;">
-                        <span class="derby-spot-number">Kuda 01 - Aero Swift</span>
-                        <span class="derby-spot-name">Aero Swift</span>
-                        <div class="derby-spot-stats">
-                            <span class="derby-stat-item">SPD 4</span>
-                            <span class="derby-stat-item">STM 4</span>
+                        <div class="derby-hud-bar-row">
+                            <span class="derby-hud-bar-label">ST</span>
+                            <div class="derby-hud-bar-bg">
+                                <div class="derby-hud-bar-fill st-fill" id="derby-hud-st-fill"></div>
+                            </div>
                         </div>
-                        <span class="derby-spot-odds">Odds: 2.2x</span>
-                        <span class="derby-spot-mybet" id="spot-bet-1"></span>
-                    </div>
-                    <!-- Horse 2 Spot -->
-                    <div class="derby-bet-spot" data-horse-id="2" style="--horse-color: #ff0055;">
-                        <span class="derby-spot-number">Kuda 02 - Crimson Bolt</span>
-                        <span class="derby-spot-name">Crimson Bolt</span>
-                        <div class="derby-spot-stats">
-                            <span class="derby-stat-item">SPD 5</span>
-                            <span class="derby-stat-item">STM 2</span>
-                        </div>
-                        <span class="derby-spot-odds">Odds: 3.5x</span>
-                        <span class="derby-spot-mybet" id="spot-bet-2"></span>
-                    </div>
-                    <!-- Horse 3 Spot -->
-                    <div class="derby-bet-spot" data-horse-id="3" style="--horse-color: #eab308;">
-                        <span class="derby-spot-number">Kuda 03 - Volt Dust</span>
-                        <span class="derby-spot-name">Volt Dust</span>
-                        <div class="derby-spot-stats">
-                            <span class="derby-stat-item">SPD 3</span>
-                            <span class="derby-stat-item">STM 5</span>
-                        </div>
-                        <span class="derby-spot-odds">Odds: 4.8x</span>
-                        <span class="derby-spot-mybet" id="spot-bet-3"></span>
-                    </div>
-                    <!-- Horse 4 Spot -->
-                    <div class="derby-bet-spot" data-horse-id="4" style="--horse-color: #a855f7;">
-                        <span class="derby-spot-number">Kuda 04 - Glitch Runner</span>
-                        <span class="derby-spot-name">Glitch Runner</span>
-                        <div class="derby-spot-stats">
-                            <span class="derby-stat-item">SPD 4</span>
-                            <span class="derby-stat-item">STM 3</span>
-                        </div>
-                        <span class="derby-spot-odds">Odds: 8.0x</span>
-                        <span class="derby-spot-mybet" id="spot-bet-4"></span>
-                    </div>
-                    <!-- Horse 5 Spot -->
-                    <div class="derby-bet-spot" data-horse-id="5" style="--horse-color: #00ff88;">
-                        <span class="derby-spot-number">Kuda 05 - Neon Spark</span>
-                        <span class="derby-spot-name">Neon Spark</span>
-                        <div class="derby-spot-stats">
-                            <span class="derby-stat-item">SPD 2</span>
-                            <span class="derby-stat-item">STM 4</span>
-                        </div>
-                        <span class="derby-spot-odds">Odds: 15.0x</span>
-                        <span class="derby-spot-mybet" id="spot-bet-5"></span>
-                    </div>
-                </div>
-                
-                <!-- Chips selector and Buttons -->
-                <div class="derby-chips-panel">
-                    <div class="derby-chips-group">
-                        <div class="derby-chip chip-10" data-value="10">10</div>
-                        <div class="derby-chip chip-50 selected" data-value="50">50</div>
-                        <div class="derby-chip chip-100" data-value="100">100</div>
-                        <div class="derby-chip chip-500" data-value="500">500</div>
-                        <div class="derby-chip chip-all" data-value="all">ALL</div>
                     </div>
                     
-                    <div class="derby-btn-group">
-                        <button class="derby-btn derby-btn-clear" id="btn-derby-clear" disabled>
-                            <i data-lucide="trash-2"></i> Bersihkan
+                    <!-- Distance left & Rank position -->
+                    <div class="derby-hud-info-box">
+                        <div class="derby-hud-info-item">
+                            <span class="derby-hud-info-label">Jarak</span>
+                            <span class="derby-hud-info-val yellow" id="derby-hud-dist">1000m</span>
+                        </div>
+                        <div class="derby-hud-info-item">
+                            <span class="derby-hud-info-label">Posisi</span>
+                            <span class="derby-hud-info-val cyan" id="derby-hud-rank">6/6</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Touch Gamepad Controls Overlay (Mobile Only) -->
+                <div class="derby-gamepad">
+                    <div class="derby-gamepad-left">
+                        <button class="derby-touch-btn" id="touch-derby-left" aria-label="Gerak Kiri">
+                            <i data-lucide="chevron-left"></i>
                         </button>
-                        <button class="derby-btn derby-btn-race" id="btn-derby-race" disabled>
+                        <button class="derby-touch-btn" id="touch-derby-right" aria-label="Gerak Kanan">
+                            <i data-lucide="chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="derby-gamepad-right">
+                        <button class="derby-touch-btn whip-btn" id="touch-derby-whip" aria-label="Pecut Kuda">
+                            WHIP
+                        </button>
+                    </div>
+                </div>
+
+                <!-- OVERLAY SCREEN: START CAREER MENU -->
+                <div class="derby-screen-overlay" id="derby-screen-start">
+                    <div class="derby-screen-container">
+                        <h1 class="derby-screen-title">Cyber Rider Derby</h1>
+                        <div class="derby-screen-subtitle">Arcade Rider Challenge</div>
+                        <p class="derby-screen-desc">Pacu kuda siber Anda secara manual, meliuk-liuk menyalip kompetitor, kelola stamina dengan bijak, dan raih podium pertama!</p>
+                        
+                        <div class="derby-guide-box">
+                            <div class="derby-guide-row">
+                                <span>Kemudi (Kiri / Kanan):</span>
+                                <span class="derby-guide-key">A / D</span> atau <span class="derby-guide-key">← / →</span>
+                            </div>
+                            <div class="derby-guide-row">
+                                <span>Pecut / Akselerasi:</span>
+                                <span class="derby-guide-key">W</span> atau <span class="derby-guide-key">Spacebar</span>
+                            </div>
+                        </div>
+                        
+                        <button class="derby-screen-btn" id="btn-derby-start-game">
                             <i data-lucide="play"></i> Mulai Balapan
                         </button>
                     </div>
                 </div>
+
+                <!-- OVERLAY SCREEN: 3S COUNTDOWN -->
+                <div class="derby-screen-overlay" id="derby-screen-countdown" style="display: none;">
+                    <div class="derby-screen-container">
+                        <h1 id="derby-countdown-text" style="font-size: 80px; font-weight: 900; color: #00f0ff; text-shadow: 0 0 25px rgba(0, 240, 255, 0.6); transition: transform 0.2s;">3</h1>
+                    </div>
+                </div>
+
+                <!-- OVERLAY SCREEN: FINAL LEADERBOARD SCOREBOARD -->
+                <div class="derby-screen-overlay" id="derby-screen-leaderboard" style="display: none;">
+                    <div class="derby-screen-container">
+                        <h2 class="derby-result-status" id="derby-result-status">BALAPAN SELESAI</h2>
+                        <p class="derby-screen-desc" style="margin-bottom: 12px;">Peringkat Kejuaraan Akhir:</p>
+                        
+                        <table class="derby-leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>POS</th>
+                                    <th>KUDA</th>
+                                    <th>NO</th>
+                                    <th>WAKTU</th>
+                                </tr>
+                            </thead>
+                            <tbody id="derby-leaderboard-body">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                        
+                        <button class="derby-screen-btn" id="btn-derby-restart">
+                            <i data-lucide="rotate-ccw"></i> Main Lagi
+                        </button>
+                    </div>
+                </div>
             </div>
+        </div>
+    </div>
         </div>
     </div>
 

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   CYBER DERBY ROYALE STYLESHEET (derby.css)
+   CYBER RIDER DERBY - ARCADE RACER STYLESHEET (derby.css)
    ========================================================================== */
 
 /* Game Modal Overlay */
@@ -9,7 +9,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(6, 8, 14, 0.94);
+    background: rgba(5, 7, 12, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     z-index: 2000;
@@ -29,12 +29,12 @@
 /* Modal Content Container */
 .derby-modal-content {
     position: relative;
-    background: #0b0f19;
-    border: 2px solid #00ff88; /* Neon Green border */
-    box-shadow: 0 0 30px rgba(0, 255, 136, 0.25), inset 0 0 20px rgba(0, 0, 0, 0.8);
+    background: #080c14;
+    border: 2px solid #00f0ff; /* Neon Cyan border */
+    box-shadow: 0 0 35px rgba(0, 240, 255, 0.25), inset 0 0 20px rgba(0, 0, 0, 0.9);
     border-radius: 12px;
     width: 100%;
-    max-width: 1000px;
+    max-width: 950px;
     max-height: 95vh;
     overflow: hidden;
     display: flex;
@@ -97,23 +97,17 @@
 }
 
 .derby-fullscreen-btn:hover {
-    background: #00ff88;
+    background: #00f0ff;
     color: #000;
-    border-color: #00ff88;
+    border-color: #00f0ff;
     transform: scale(1.05);
-}
-
-.derby-fullscreen-btn i {
-    width: 18px;
-    height: 18px;
-    pointer-events: none;
 }
 
 /* Game Header */
 .derby-modal-header {
-    background: #070b12;
+    background: #05080e;
     padding: 15px 25px;
-    border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+    border-bottom: 1px solid rgba(0, 240, 255, 0.15);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -132,535 +126,481 @@
 }
 
 .derby-title-text i {
-    color: #00ff88;
-    filter: drop-shadow(0 0 5px rgba(0, 255, 136, 0.5));
+    color: #00f0ff;
+    filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.5));
 }
 
 .derby-title-tag {
-    background: rgba(0, 255, 136, 0.12);
-    color: #00ff88;
+    background: rgba(0, 240, 255, 0.12);
+    color: #00f0ff;
     font-size: 11px;
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 4px;
-    border: 1px solid rgba(0, 255, 136, 0.2);
-    text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+    border: 1px solid rgba(0, 240, 255, 0.2);
 }
 
-/* Main Racetrack Viewport */
+/* Main Viewport Container */
 .derby-viewport {
     position: relative;
     width: 100%;
-    background: #06090e;
+    background: #04060a;
     display: flex;
     justify-content: center;
     align-items: center;
-    aspect-ratio: 2.3 / 1;
+    aspect-ratio: 2.2 / 1;
     flex: 1;
     min-height: 0;
     overflow: hidden;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 #derby-canvas {
-    max-width: 100%;
-    max-height: 100%;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
     display: block;
 }
 
-/* Live Commentary Overlay Console */
-.derby-commentary-console {
+/* ==========================================================================
+   GAME HUD & OVERLAYS
+   ========================================================================== */
+
+/* Top HUD Banner (Score, Distance, Position) */
+.derby-hud-overlay {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(7, 11, 18, 0.85);
-    backdrop-filter: blur(4px);
-    border-top: 1px solid rgba(0, 255, 136, 0.15);
-    padding: 8px 20px;
+    top: 15px;
+    left: 20px;
+    right: 20px;
     display: flex;
-    align-items: center;
-    gap: 15px;
-    font-family: monospace;
-    font-size: 12px;
-    color: #00f0ff;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
     z-index: 10;
 }
 
-.derby-commentary-label {
-    font-weight: bold;
-    color: #ff00aa;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    animation: derby-blink 1s infinite alternate;
-}
-
-.derby-commentary-text {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: #f3f4f6;
-    font-style: italic;
-}
-
-@keyframes derby-blink {
-    from { opacity: 0.4; }
-    to { opacity: 1; }
-}
-
-/* Dashboard Panel (Balances / Bet Amount) */
-.derby-dashboard {
+/* Stats (SP / ST) Cards at Top Left */
+.derby-hud-stats-box {
     display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background: #070b12;
-    padding: 10px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    gap: 15px;
-}
-
-.derby-stat-card {
-    background: rgba(255, 255, 255, 0.01);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(5, 8, 14, 0.7);
+    border: 1px solid rgba(0, 240, 255, 0.2);
     border-radius: 8px;
-    padding: 6px 12px;
-    flex: 1;
-    text-align: center;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    padding: 10px 14px;
+    width: 220px;
+    backdrop-filter: blur(4px);
 }
 
-.derby-stat-label {
-    font-size: 10px;
-    font-weight: 600;
+.derby-hud-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.derby-hud-bar-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff;
+    width: 24px;
+}
+
+.derby-hud-bar-bg {
+    flex: 1;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.derby-hud-bar-fill {
+    height: 100%;
+    width: 0%; /* Dynamic */
+    transition: width 0.1s ease-out;
+}
+
+.derby-hud-bar-fill.sp-fill {
+    background: linear-gradient(90deg, #00f0ff, #00ff88);
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+}
+
+.derby-hud-bar-fill.st-fill {
+    background: linear-gradient(90deg, #ff0055, #ff00aa);
+    box-shadow: 0 0 8px rgba(255, 0, 85, 0.5);
+}
+
+/* Distance & Position at Top Right */
+.derby-hud-info-box {
+    display: flex;
+    gap: 15px;
+    background: rgba(5, 8, 14, 0.7);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    border-radius: 8px;
+    padding: 10px 18px;
+    backdrop-filter: blur(4px);
+}
+
+.derby-hud-info-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.derby-hud-info-label {
+    font-size: 9px;
+    font-weight: 700;
     color: #9ca3af;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    display: block;
     margin-bottom: 2px;
 }
 
-.derby-stat-val {
+.derby-hud-info-val {
     font-family: monospace;
-    font-size: 16px;
-    font-weight: 800;
-    color: #fff;
-}
-
-.derby-stat-val.blue {
-    color: #00f0ff;
-    text-shadow: 0 0 8px rgba(0, 240, 255, 0.35);
-}
-
-.derby-stat-val.green {
-    color: #00ff88;
-    text-shadow: 0 0 8px rgba(0, 255, 136, 0.35);
-}
-
-.derby-stat-val.magenta {
-    color: #ff00aa;
-    text-shadow: 0 0 8px rgba(255, 0, 170, 0.35);
-}
-
-/* Betting Board Section */
-.derby-betting-area {
-    background: #04070c;
-    padding: 15px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.derby-board-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.derby-board-title {
-    font-size: 11px;
-    font-weight: 700;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-}
-
-/* Roadmap/History panel for winners */
-.derby-roadmap {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 10px;
-    color: #9ca3af;
-}
-
-.derby-roadmap-title {
-    font-weight: bold;
-    margin-right: 4px;
-}
-
-.derby-roadmap-dot {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 18px;
     font-weight: 900;
-    font-family: monospace;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
 }
 
-/* Grid of Horse Betting Cards */
-.derby-grid-board {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
+.derby-hud-info-val.yellow {
+    color: #eab308;
+    text-shadow: 0 0 6px rgba(234, 179, 8, 0.4);
 }
 
-/* Horse Bet Spot */
-.derby-bet-spot {
-    background: rgba(255, 255, 255, 0.01);
-    border: 1.5px dashed rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    padding: 10px 8px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    user-select: none;
-    -webkit-user-select: none;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+.derby-hud-info-val.cyan {
+    color: #00f0ff;
+    text-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
 }
 
-.derby-bet-spot::before {
-    content: '';
+/* ==========================================================================
+   GAME SCREENS (START & LEADERBOARD)
+   ========================================================================== */
+
+/* Fullscreen Menu Screens overlaying the viewport */
+.derby-screen-overlay {
     position: absolute;
     top: 0;
     left: 0;
-    width: 4px;
+    width: 100%;
     height: 100%;
-    background: var(--horse-color, #fff);
-    opacity: 0.8;
-}
-
-.derby-bet-spot:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.02);
-    transform: translateY(-2px);
-}
-
-.derby-bet-spot.has-bet {
-    border-style: solid;
-    border-color: var(--horse-color, #fff);
-    background: rgba(255, 255, 255, 0.04);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Horse Details */
-.derby-spot-number {
-    font-family: monospace;
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--horse-color, #fff);
-    display: block;
-    text-transform: uppercase;
-}
-
-.derby-spot-name {
-    font-family: 'Outfit', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: #f3f4f6;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.derby-spot-stats {
+    background: rgba(5, 7, 12, 0.88);
+    backdrop-filter: blur(6px);
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 6px;
-    font-size: 9px;
-    color: #9ca3af;
+    z-index: 20;
+    color: #fff;
 }
 
-.derby-stat-item {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 1px 4px;
-    border-radius: 3px;
+.derby-screen-container {
+    text-align: center;
+    max-width: 450px;
+    padding: 20px;
+    animation: derby-screen-fade 0.3s ease-out;
 }
 
-.derby-spot-odds {
-    font-size: 11px;
+@keyframes derby-screen-fade {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.derby-screen-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 28px;
     font-weight: 800;
-    color: #ff00aa;
-    margin-top: 2px;
+    letter-spacing: 0.05em;
+    color: #00f0ff;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    text-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
 }
 
-.derby-spot-mybet {
-    font-family: monospace;
+.derby-screen-subtitle {
     font-size: 11px;
-    font-weight: bold;
-    color: #00ff88;
-    margin-top: 4px;
-    display: block;
-    height: 16px;
-    text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+    font-weight: 600;
+    color: #ff00aa;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
 }
 
-/* Chips and Aksi Panel */
-.derby-chips-panel {
+.derby-screen-desc {
+    font-size: 13px;
+    color: #9ca3af;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+/* Control Guide Layout */
+.derby-guide-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+    font-size: 12px;
+}
+
+.derby-guide-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
-    margin-top: 5px;
 }
 
-.derby-chips-group {
-    display: flex;
+.derby-guide-key {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-weight: bold;
+    color: #00ff88;
+}
+
+/* Papan Peringkat / Leaderboard Table */
+.derby-leaderboard-table {
+    width: 100%;
+    margin-bottom: 25px;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.derby-leaderboard-table th {
+    color: #ff00aa;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.1);
+    font-family: 'Outfit', sans-serif;
+    text-transform: uppercase;
+}
+
+.derby-leaderboard-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.derby-leaderboard-table tr.player-row {
+    background: rgba(0, 240, 255, 0.08);
+    font-weight: bold;
+    color: #00f0ff;
+}
+
+.derby-leaderboard-table tr.player-row td {
+    border-top: 1px solid rgba(0, 240, 255, 0.2);
+    border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+/* Giant result text (CONGRATULATIONS / CRASHED) */
+.derby-result-status {
+    font-family: 'Outfit', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+}
+.derby-result-status.win { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.3); }
+.derby-result-status.lose { color: #ff0055; text-shadow: 0 0 10px rgba(255, 0, 85, 0.3); }
+
+/* Play/Restart Buttons */
+.derby-screen-btn {
+    padding: 12px 36px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #00f0ff, #00ff88);
+    border: none;
+    border-radius: 6px;
+    color: #000;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
 }
 
-/* Chip Styles */
-.derby-chip {
-    width: 42px;
-    height: 42px;
+.derby-screen-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.55);
+}
+
+/* ==========================================================================
+   VIRTUAL TOUCH GAMEPAD (MOBILE / TABLET)
+   ========================================================================== */
+.derby-gamepad {
+    position: absolute;
+    bottom: 25px;
+    left: 25px;
+    right: 25px;
+    display: none; /* Displayed only on touch screens via JS/Media queries */
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 15;
+}
+
+.derby-gamepad-left,
+.derby-gamepad-right {
+    display: flex;
+    gap: 15px;
+    pointer-events: auto;
+}
+
+.derby-touch-btn {
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    border: 3px dashed;
+    background: rgba(5, 8, 14, 0.65);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: monospace;
-    font-size: 10px;
-    font-weight: 900;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     user-select: none;
-    background: #080c14;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    -webkit-user-select: none;
+    transition: all 0.1s ease-out;
 }
 
-.derby-chip.chip-10 { border-color: #00f0ff; color: #00f0ff; }
-.derby-chip.chip-50 { border-color: #a855f7; color: #a855f7; }
-.derby-chip.chip-100 { border-color: #eab308; color: #eab308; }
-.derby-chip.chip-500 { border-color: #ff00aa; color: #ff00aa; }
-.derby-chip.chip-all { border-color: #00ff88; color: #00ff88; border-style: double; width: 44px; height: 44px; }
-
-.derby-chip:hover {
-    transform: scale(1.1) rotate(15deg);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+.derby-touch-btn i {
+    width: 28px;
+    height: 28px;
+    pointer-events: none;
 }
 
-.derby-chip.selected {
-    transform: scale(1.15) rotate(0deg);
-    background: #fff;
-    border-style: solid;
-    box-shadow: 0 0 15px currentColor;
+.derby-touch-btn:active {
+    background: rgba(0, 240, 255, 0.25);
+    border-color: #00f0ff;
+    color: #00f0ff;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    transform: scale(0.92);
 }
 
-.derby-chip.chip-10.selected { color: #0b132b; }
-.derby-chip.chip-50.selected { color: #2e1065; }
-.derby-chip.chip-100.selected { color: #422006; }
-.derby-chip.chip-500.selected { color: #4c0519; }
-.derby-chip.chip-all.selected { color: #022c22; }
-
-/* Control Buttons */
-.derby-btn-group {
-    display: flex;
-    gap: 12px;
-}
-
-.derby-btn {
-    padding: 10px 24px;
+/* Whip/Accelerate Action Button specific colors */
+.derby-touch-btn.whip-btn {
+    border-color: rgba(255, 0, 170, 0.35);
+    color: rgba(255, 0, 170, 0.7);
     font-family: 'Outfit', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.derby-btn-race {
-    background: linear-gradient(135deg, #00ff88, #00a3ff);
-    color: #000;
     font-weight: 800;
-    box-shadow: 0 0 15px rgba(0, 255, 136, 0.25);
+    font-size: 13px;
+    width: 64px;
+    height: 64px;
 }
 
-.derby-btn-race:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 0 20px rgba(0, 255, 136, 0.45);
+.derby-touch-btn.whip-btn:active {
+    background: rgba(255, 0, 170, 0.25);
+    border-color: #ff00aa;
+    color: #ff00aa;
+    box-shadow: 0 0 15px rgba(255, 0, 170, 0.4);
 }
 
-.derby-btn-race:disabled {
-    background: #1f2937;
-    color: #4b5563;
-    cursor: not-allowed;
-    box-shadow: none;
+/* ==========================================================================
+   RESPONSIVE SCALING & LANDSCAPE ORIENTATIONS
+   ========================================================================== */
+
+/* Display Touch Gamepad on Touch Devices */
+@media (hover: none) and (pointer: coarse), (max-width: 768px) {
+    .derby-gamepad {
+        display: flex;
+    }
 }
 
-.derby-btn-clear {
-    background: transparent;
-    border: 1.5px solid rgba(255, 255, 255, 0.15);
-    color: #9ca3af;
-}
-
-.derby-btn-clear:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-.derby-btn-clear:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Fullscreen Styling */
-.derby-modal-content:fullscreen,
-.derby-modal-content.derby-pseudo-fullscreen {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    border-radius: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-    background: #06090e !important;
-    display: flex !important;
-    flex-direction: column !important;
-    z-index: 2005 !important;
-}
-
-.derby-modal-content:fullscreen .derby-viewport,
-.derby-modal-content.derby-pseudo-fullscreen .derby-viewport {
-    flex: 1 !important;
-    aspect-ratio: auto !important;
-}
-
-.derby-modal-content:fullscreen #derby-canvas,
-.derby-modal-content.derby-pseudo-fullscreen #derby-canvas {
-    width: auto !important;
-    height: auto !important;
-}
-
-/* Responsive Scaling */
 @media (max-width: 768px) {
     .derby-modal {
         padding: 0;
     }
-    
     .derby-modal-content {
         max-width: 100%;
         max-height: 100vh;
         border-radius: 0;
         border-width: 1px 0;
     }
-    
-    .derby-dashboard {
-        padding: 8px;
-        gap: 8px;
+    .derby-modal-header {
+        padding: 8px 12px;
     }
-    
-    .derby-stat-val {
+    .derby-hud-overlay {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+    }
+    .derby-hud-stats-box {
+        width: 150px;
+        padding: 6px 10px;
+    }
+    .derby-hud-bar-label {
+        font-size: 10px;
+        width: 18px;
+    }
+    .derby-hud-info-box {
+        padding: 6px 12px;
+        gap: 10px;
+    }
+    .derby-hud-info-val {
         font-size: 14px;
     }
-    
-    .derby-betting-area {
-        padding: 10px 12px;
+    .derby-touch-btn {
+        width: 50px;
+        height: 50px;
     }
-    
-    .derby-grid-board {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-    }
-}
-
-@media (max-width: 480px) {
-    .derby-grid-board {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .derby-chips-panel {
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-    }
-    
-    .derby-chips-group {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .derby-btn-group {
-        width: 100%;
-    }
-    
-    .derby-btn {
-        flex: 1;
-        justify-content: center;
+    .derby-touch-btn.whip-btn {
+        width: 54px;
+        height: 54px;
     }
 }
 
-/* Low-height Viewports (Landscape Mobile) */
+/* Space-saving adjustments for Mobile Landscape (low-height viewports) */
 @media (max-height: 500px) {
     .derby-modal-header {
-        padding: 6px 12px !important;
+        padding: 5px 12px !important;
     }
     .derby-modal-header .derby-title-text,
     .derby-modal-header .derby-title-tag {
         display: none !important;
     }
-    .derby-dashboard {
-        padding: 4px 10px !important;
+    .derby-hud-overlay {
+        top: 6px !important;
     }
-    .derby-commentary-console {
-        padding: 4px 12px !important;
+    .derby-gamepad {
+        bottom: 12px !important;
     }
-    .derby-betting-area {
-        padding: 6px 12px !important;
+    .derby-touch-btn {
+        width: 44px !important;
+        height: 44px !important;
     }
-    .derby-grid-board {
-        gap: 6px !important;
+    .derby-touch-btn.whip-btn {
+        width: 46px !important;
+        height: 46px !important;
     }
-    .derby-bet-spot {
-        padding: 6px 4px !important;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
+    .derby-screen-container {
+        padding: 10px !important;
     }
-    .derby-spot-stats {
-        display: none;
+    .derby-screen-title {
+        font-size: 20px !important;
+        margin-bottom: 2px !important;
     }
-    .derby-chips-panel {
-        margin-top: 4px !important;
-        gap: 10px !important;
+    .derby-screen-subtitle {
+        margin-bottom: 6px !important;
     }
-    .derby-chip {
-        width: 34px !important;
-        height: 34px !important;
-        font-size: 9px !important;
-        border-width: 2px !important;
-    }
-    .derby-btn {
-        padding: 6px 14px !important;
+    .derby-screen-desc {
+        margin-bottom: 12px !important;
         font-size: 11px !important;
+    }
+    .derby-guide-box {
+        margin-bottom: 12px !important;
+        padding: 6px !important;
+    }
+    .derby-leaderboard-table {
+        margin-bottom: 12px !important;
+        font-size: 11px !important;
+    }
+    .derby-screen-btn {
+        padding: 8px 20px !important;
+        font-size: 12px !important;
     }
 }
