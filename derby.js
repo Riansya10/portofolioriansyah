@@ -161,17 +161,25 @@
         // Bind Keyboard Inputs
         window.addEventListener("keydown", (e) => {
             if (raceState === "racing") {
-                keys[e.key] = true;
-                
-                // Prevent scrolling with arrows/space inside game modal
-                if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(e.key)) {
+                const key = e.key;
+                keys[key] = true;
+
+                if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " ", "Spacebar", "w", "W"].includes(key)) {
                     e.preventDefault();
+                }
+
+                if (["w", "W", " ", "Spacebar"].includes(key)) {
+                    playerWhipActive = true;
                 }
             }
         });
         window.addEventListener("keyup", (e) => {
             if (raceState === "racing") {
-                keys[e.key] = false;
+                const key = e.key;
+                keys[key] = false;
+                if (["w", "W", " ", "Spacebar"].includes(key)) {
+                    playerWhipActive = false;
+                }
             }
         });
 
