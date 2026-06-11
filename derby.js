@@ -44,7 +44,7 @@
         {
             id: 0,
             name: "CYBER STREAK",
-            color: "#00f0ff",
+            color: "#6b4d31",
             number: "08",
             isPlayer: true,
             z: 0,
@@ -56,8 +56,8 @@
         },
         {
             id: 1,
-            name: "NEON AURA",
-            color: "#ff00aa",
+            name: "DUSK STALLION",
+            color: "#503826",
             number: "01",
             isPlayer: false,
             z: 1200,
@@ -71,8 +71,8 @@
         },
         {
             id: 2,
-            name: "VOLT FALCON",
-            color: "#eab308",
+            name: "SAND SHADOW",
+            color: "#a1826f",
             number: "02",
             isPlayer: false,
             z: 400,
@@ -86,8 +86,8 @@
         },
         {
             id: 3,
-            name: "CRIMSON COMET",
-            color: "#ff0055",
+            name: "BRONZE GLIDE",
+            color: "#7f5c3d",
             number: "03",
             isPlayer: false,
             z: 2000,
@@ -101,8 +101,8 @@
         },
         {
             id: 4,
-            name: "GLITCH PHANTOM",
-            color: "#a855f7",
+            name: "ASHEN BREEZE",
+            color: "#4b3a2f",
             number: "04",
             isPlayer: false,
             z: 800,
@@ -116,8 +116,8 @@
         },
         {
             id: 5,
-            name: "AERO SWIFT",
-            color: "#00ff88",
+            name: "MOONSTRIDE",
+            color: "#2f241d",
             number: "05",
             isPlayer: false,
             z: 1600,
@@ -274,9 +274,9 @@
         const modal = document.getElementById("derby-modal");
         if (modal) {
             modal.classList.add("show");
-            showScreen("start");
             gameActive = true;
             resetGameState();
+            showScreen("start");
             setTimeout(() => {
                 initDerbyGame();
             }, 100);
@@ -320,30 +320,59 @@
         const now = audioCtx.currentTime;
 
         if (type === "tick") {
-            // Short countdown beep
-            osc.type = "sine";
-            osc.frequency.setValueAtTime(440, now);
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            // Cowboy-style click / hoof tap for countdown
+            osc.type = "square";
+            osc.frequency.setValueAtTime(220, now);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
             osc.start(now);
-            osc.stop(now + 0.1);
+            osc.stop(now + 0.12);
+
+            const click = audioCtx.createBufferSource();
+            const clickBuf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.03, audioCtx.sampleRate);
+            const clickData = clickBuf.getChannelData(0);
+            for (let i = 0; i < clickData.length; i++) {
+                clickData[i] = (Math.random() * 2 - 1) * Math.exp(-10 * i / clickData.length);
+            }
+            click.buffer = clickBuf;
+            const clickGain = audioCtx.createGain();
+            clickGain.gain.setValueAtTime(0.08, now);
+            clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+            click.connect(clickGain);
+            clickGain.connect(audioCtx.destination);
+            click.start(now);
         } 
         else if (type === "go") {
-            // Higher starting beep
-            osc.type = "sine";
-            osc.frequency.setValueAtTime(880, now);
-            gain.gain.setValueAtTime(0.18, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            // Starter pistol / western shiver
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(180, now);
+            gain.gain.setValueAtTime(0.16, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
             osc.start(now);
-            osc.stop(now + 0.4);
-        }
-        else if (type === "whip") {
-            // Whip crack (filtered white noise burst)
-            const bufferSize = audioCtx.sampleRate * 0.08; // 80ms
+            osc.stop(now + 0.25);
+
+            const pistol = audioCtx.createBufferSource();
+            const bufferSize = audioCtx.sampleRate * 0.05;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-15 * i / bufferSize);
+            }
+            pistol.buffer = buffer;
+            const pistolGain = audioCtx.createGain();
+            pistolGain.gain.setValueAtTime(0.12, now);
+            pistolGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            pistol.connect(pistolGain);
+            pistolGain.connect(audioCtx.destination);
+            pistol.start(now);
+        }
+        else if (type === "whip") {
+            // Horse whip crack: sharp noise burst with quick decay
+            const bufferSize = audioCtx.sampleRate * 0.06;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-10 * i / bufferSize);
             }
 
             const noiseNode = audioCtx.createBufferSource();
@@ -351,92 +380,79 @@
 
             const filter = audioCtx.createBiquadFilter();
             filter.type = "bandpass";
-            filter.frequency.setValueAtTime(1200, now);
-            filter.Q.setValueAtTime(3.0, now);
+            filter.frequency.setValueAtTime(1400, now);
+            filter.Q.setValueAtTime(4.0, now);
 
             const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0.16, now);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+            noiseGain.gain.setValueAtTime(0.18, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
 
             noiseNode.connect(filter);
             filter.connect(noiseGain);
             noiseGain.connect(audioCtx.destination);
             noiseNode.start(now);
-
-            // Follow-up slap chime
-            osc.type = "triangle";
-            osc.frequency.setValueAtTime(600, now + 0.01);
-            osc.frequency.exponentialRampToValueAtTime(200, now + 0.06);
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-            osc.start(now);
-            osc.stop(now + 0.06);
         }
         else if (type === "crash") {
-            // Crash impact (heavy rumble)
-            osc.type = "sawtooth";
-            osc.frequency.setValueAtTime(100, now);
-            osc.frequency.linearRampToValueAtTime(20, now + 0.5);
-            gain.gain.setValueAtTime(0.25, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            // Hoof stomp / impact thud
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(90, now);
+            gain.gain.setValueAtTime(0.24, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
             osc.start(now);
-            osc.stop(now + 0.5);
+            osc.stop(now + 0.35);
 
-            // Noise element of crash
-            const bufferSize = audioCtx.sampleRate * 0.4;
+            const bufferSize = audioCtx.sampleRate * 0.18;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-8 * i / bufferSize);
             }
             const noise = audioCtx.createBufferSource();
             noise.buffer = buffer;
-            
             const lowpass = audioCtx.createBiquadFilter();
             lowpass.type = "lowpass";
-            lowpass.frequency.setValueAtTime(180, now);
-            
+            lowpass.frequency.setValueAtTime(220, now);
             const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0.2, now);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-
+            noiseGain.gain.setValueAtTime(0.12, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
             noise.connect(lowpass);
             lowpass.connect(noiseGain);
             noiseGain.connect(audioCtx.destination);
             noise.start(now);
         }
         else if (type === "win") {
-            // Retro happy victory theme
-            const melody = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50]; // C major scale
+            // Western victory motif
+            const melody = [220.00, 246.94, 196.00, 261.63, 293.66];
             melody.forEach((freq, idx) => {
                 const noteOsc = audioCtx.createOscillator();
                 const noteGain = audioCtx.createGain();
                 noteOsc.type = "triangle";
-                noteOsc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                noteOsc.frequency.setValueAtTime(freq, now + idx * 0.14);
                 noteOsc.connect(noteGain);
                 noteGain.connect(audioCtx.destination);
-                noteGain.gain.setValueAtTime(0.15, now + idx * 0.1);
-                noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.25);
-                noteOsc.start(now + idx * 0.1);
-                noteOsc.stop(now + idx * 0.1 + 0.25);
+                noteGain.gain.setValueAtTime(0.14, now + idx * 0.14);
+                noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.14 + 0.22);
+                noteOsc.start(now + idx * 0.14);
+                noteOsc.stop(now + idx * 0.14 + 0.22);
             });
         }
         else if (type === "lose") {
-            // Sad descending jingle
-            const melody = [440.00, 415.30, 392.00, 349.23];
+            // Slow western tumble
+            const melody = [196.00, 185.00, 174.61, 164.81];
             melody.forEach((freq, idx) => {
                 const noteOsc = audioCtx.createOscillator();
                 const noteGain = audioCtx.createGain();
-                noteOsc.type = "sawtooth";
-                noteOsc.frequency.setValueAtTime(freq, now + idx * 0.18);
+                noteOsc.type = "triangle";
+                noteOsc.frequency.setValueAtTime(freq, now + idx * 0.2);
                 noteOsc.connect(noteGain);
                 noteGain.connect(audioCtx.destination);
-                noteGain.gain.setValueAtTime(0.12, now + idx * 0.18);
-                noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.18 + 0.3);
-                noteOsc.start(now + idx * 0.18);
-                noteOsc.stop(now + idx * 0.18 + 0.3);
+                noteGain.gain.setValueAtTime(0.12, now + idx * 0.2);
+                noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.2 + 0.28);
+                noteOsc.start(now + idx * 0.2);
+                noteOsc.stop(now + idx * 0.2 + 0.28);
             });
         }
+
     }
 
     function startRaceAudio() {
@@ -447,28 +463,28 @@
 
         const now = audioCtx.currentTime;
 
-        // White noise for ambient wind/crowd
+        // Soft western wind ambience
         const bufferSize = audioCtx.sampleRate * 2.0;
         const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
+            data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
         }
 
         crowdCheerSource = audioCtx.createBufferSource();
         crowdCheerSource.buffer = buffer;
         crowdCheerSource.loop = true;
 
-        const bandpass = audioCtx.createBiquadFilter();
-        bandpass.type = "bandpass";
-        bandpass.frequency.setValueAtTime(350, now);
-        bandpass.Q.setValueAtTime(0.8, now);
+        const lowpass = audioCtx.createBiquadFilter();
+        lowpass.type = "lowpass";
+        lowpass.frequency.setValueAtTime(240, now);
+        lowpass.Q.setValueAtTime(0.7, now);
 
         crowdCheerGain = audioCtx.createGain();
-        crowdCheerGain.gain.setValueAtTime(0.04, now); // quiet wind at start
+        crowdCheerGain.gain.setValueAtTime(0.03, now); // gentle wind
 
-        crowdCheerSource.connect(bandpass);
-        bandpass.connect(crowdCheerGain);
+        crowdCheerSource.connect(lowpass);
+        lowpass.connect(crowdCheerGain);
         crowdCheerGain.connect(audioCtx.destination);
         crowdCheerSource.start(now);
     }
@@ -671,7 +687,7 @@
             // Trigger whip audio sound occasionally
             if (Math.random() < 0.08) {
                 playSynthesizedSound("whip");
-                createSparks(playerZ, playerX, "#ff00aa", 3);
+                createSparks(playerZ, playerX, "#d79b6d", 3);
             }
         } else {
             // recover stamina slowly when not whipping
@@ -704,7 +720,7 @@
 
         // Kick up dust trail particles from hooves
         if (Math.sin(HORSES[0].legPhase) > 0.8 && playerSpeed > 50 && Math.random() < 0.3) {
-            createDust(playerZ - 15, playerX + (Math.random() * 0.2 - 0.1), "#ffffff", 2);
+            createDust(playerZ - 15, playerX + (Math.random() * 0.2 - 0.1), "#d2ac76", 2);
         }
 
         // Finish line check
@@ -754,7 +770,7 @@
 
             // 2. NPC Speeds
             let baseSpeed = 240;
-            if (horse.id === 1) baseSpeed = 252; // Neon Aura
+            if (horse.id === 1) baseSpeed = 252; // Western pace
             if (horse.id === 3) baseSpeed = 265; // Crimson Comet
             if (horse.id === 5) baseSpeed = 258; // Aero Swift
             
@@ -768,7 +784,7 @@
 
             // Dust trail
             if (Math.sin(horse.legPhase) > 0.8 && horse.speed > 50 && Math.random() < 0.25) {
-                createDust(horse.z - 15, horse.x, "#ffffff", 1);
+                createDust(horse.z - 15, horse.x, "#d2ac76", 1);
             }
 
             // Finish check
@@ -803,8 +819,8 @@
                     invulnFrames = INVULN_MAX_FRAMES; // activate flashing/invulnerability
                     
                     // Spark burst particles
-                    createSparks(playerZ + 10, playerX, "#ff0000", 12);
-                    createSparks(playerZ + 10, playerX, "#ffffff", 6);
+                    createSparks(playerZ + 10, playerX, "#d18c4b", 12);
+                    createSparks(playerZ + 10, playerX, "#f8e2c5", 6);
                 }
             }
         });
@@ -816,26 +832,33 @@
         playerRank = sorted.findIndex(h => h.isPlayer) + 1;
     }
 
+    function getRoadCurveAtZ(z) {
+        // Smooth sweeping curves for racetrack sections
+        const mainCurve = Math.sin(z / 1200) * 0.8;
+        const smallSway = Math.sin(z / 700) * 0.24;
+        return mainCurve + smallSway;
+    }
+
     /* ==========================================================================
        CANVAS PSEUDO-3D RENDER ENGINE
        ========================================================================== */
     function renderFrame() {
         // Clear canvas
-        ctx.fillStyle = "#04060a";
+        ctx.fillStyle = "#2c1b0f";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 1. Draw Sky (synthwave night sky gradient)
+        // 1. Draw Sky (sunset desert sky)
         const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
-        skyGrad.addColorStop(0, "#05070e");
-        skyGrad.addColorStop(0.6, "#180625");
-        skyGrad.addColorStop(1, "#360028");
+        skyGrad.addColorStop(0, "#3d2413");
+        skyGrad.addColorStop(0.5, "#a66e3b");
+        skyGrad.addColorStop(1, "#e2b47a");
         ctx.fillStyle = skyGrad;
         ctx.fillRect(0, 0, canvas.width, horizonY);
 
-        // Draw Synthwave Sun
+        // Draw Western Sun
         drawSynthwaveSun();
 
-        // Draw City Silhouette
+        // Draw Desert Horizon
         drawCitySilhouette();
 
         // 2. Draw Road (Pseudo-3D Segments)
@@ -862,22 +885,22 @@
             // Clip if above horizon
             if (y1 <= horizonY || y2 <= horizonY) continue;
 
-            // Lane coordinate calculations
-            const x1 = canvas.width / 2;
-            const x2 = canvas.width / 2;
-
+            // Lane coordinate calculations with track curvature
             const w1 = roadWidthAtBottom * scale1;
             const w2 = roadWidthAtBottom * scale2;
+            const curve1 = getRoadCurveAtZ(worldZ);
+            const curve2 = getRoadCurveAtZ(worldZ + segmentLength);
+            const x1 = canvas.width / 2 + curve1 * w1;
+            const x2 = canvas.width / 2 + curve2 * w2;
 
-            // Alternating grass and asphalt colors
             const isEven = i % 2 === 0;
             
-            // Grass fields
-            ctx.fillStyle = isEven ? "#051308" : "#081d0d"; // deep green
+            // Dry desert earth and sandy track edges
+            ctx.fillStyle = isEven ? "#3c2718" : "#4f3624";
             ctx.fillRect(0, Math.floor(y2), canvas.width, Math.ceil(y1 - y2));
 
             // Road polygons
-            ctx.fillStyle = isEven ? "#0c0f16" : "#111622"; // cyber asphalt
+            ctx.fillStyle = "#4a382c";
             ctx.beginPath();
             ctx.moveTo(x1 - w1, y1);
             ctx.lineTo(x2 - w2, y2);
@@ -885,10 +908,10 @@
             ctx.lineTo(x1 + w1, y1);
             ctx.fill();
 
-            // Glowing rumble strips (edges)
+            // Dusty roadside markers
             const rumbleW1 = w1 * 0.05;
             const rumbleW2 = w2 * 0.05;
-            ctx.fillStyle = isEven ? "#00f0ff" : "#ff00aa"; // flashing neon cyan / pink
+            ctx.fillStyle = "#d9c29c";
 
             // Left rumble
             ctx.beginPath();
@@ -906,9 +929,9 @@
             ctx.lineTo(screenCoordX(x1 + w1, -rumbleW1), y1);
             ctx.fill();
 
-            // Center lane stripes (draw dashes for lanes)
+            // Center lane stripes (subtle desert markers)
             if (isEven) {
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+                ctx.strokeStyle = "rgba(242, 206, 161, 0.22)";
                 ctx.lineWidth = 2 * scale1;
                 // draw 4 lane lines separating 5 lanes
                 for (let lane = -1.2; lane <= 1.2; lane += 0.6) {
@@ -921,12 +944,12 @@
                 }
             }
 
-            // Draw Finish Line Checkered Banner on Road if visible
+            // Draw Finish Line Banner on Road if visible
             const finishSegIdx = Math.floor(TRACK_LENGTH / segmentLength);
             if (i === finishSegIdx) {
-                ctx.fillStyle = "#00ff88"; // glowing finish line
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = "#00ff88";
+                ctx.fillStyle = "#f4e0b3"; // faded finish line
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = "rgba(244, 224, 179, 0.45)";
                 ctx.beginPath();
                 ctx.moveTo(x1 - w1, y1);
                 ctx.lineTo(x2 - w2, y2);
@@ -958,14 +981,14 @@
         const rad = 50;
 
         // Glow
-        ctx.shadowBlur = 25;
-        ctx.shadowColor = "#ff00aa";
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "rgba(244, 171, 90, 0.5)";
 
-        // Yellow to Magenta gradient
+        // Warm desert sun gradient
         const sunGrad = ctx.createLinearGradient(centerX, centerY - rad, centerX, centerY + rad);
-        sunGrad.addColorStop(0, "#fffb00");
-        sunGrad.addColorStop(0.5, "#ff007b");
-        sunGrad.addColorStop(1, "#5b0082");
+        sunGrad.addColorStop(0, "#ffe5a8");
+        sunGrad.addColorStop(0.55, "#ffad56");
+        sunGrad.addColorStop(1, "#c36a2c");
         ctx.fillStyle = sunGrad;
 
         ctx.beginPath();
@@ -974,42 +997,47 @@
 
         ctx.restore();
 
-        // Sun scanline slits (classic synthwave styling)
-        ctx.fillStyle = "#04060a";
-        for (let y = centerY - rad; y < centerY; y += 6) {
-            // make lines progressively wider at the bottom
-            const lineH = 2.5 * ((y - (centerY - rad)) / rad);
+        // Light desert haze lines
+        ctx.fillStyle = "rgba(44, 27, 11, 0.08)";
+        for (let y = centerY - rad + 4; y < centerY; y += 8) {
+            const lineH = 1.8 * ((y - (centerY - rad)) / rad);
             ctx.fillRect(centerX - rad - 10, y, rad * 2 + 20, lineH);
         }
     }
 
     function drawCitySilhouette() {
         ctx.save();
-        ctx.fillStyle = "#0c0514";
-        ctx.strokeStyle = "rgba(0, 240, 255, 0.1)";
+        ctx.fillStyle = "#2a180f";
+        ctx.strokeStyle = "rgba(190, 140, 90, 0.18)";
         ctx.lineWidth = 1;
 
-        // Draw simple neon skyscrapers blocky skyline on horizon
-        const skyline = [
-            {w: 30, h: 40}, {w: 20, h: 60}, {w: 40, h: 25}, {w: 15, h: 80},
-            {w: 25, h: 50}, {w: 50, h: 30}, {w: 35, h: 70}, {w: 20, h: 45}
+        // Draw desert mesa horizon silhouette
+        const mesas = [
+            {x: 80, w: 90, h: 36, top: 18},
+            {x: 220, w: 70, h: 48, top: 14},
+            {x: 340, w: 110, h: 30, top: 10},
+            {x: 490, w: 80, h: 42, top: 16},
+            {x: 610, w: 60, h: 34, top: 12},
+            {x: 700, w: 90, h: 40, top: 20}
         ];
 
-        let curX = 150;
-        // repeat skyline
-        for (let r = 0; r < 2; r++) {
-            skyline.forEach(build => {
-                ctx.fillRect(curX, horizonY - build.h, build.w, build.h);
-                ctx.strokeRect(curX, horizonY - build.h, build.w, build.h);
-                curX += build.w + 2;
-            });
-            curX += 40;
-        }
+        mesas.forEach(mesa => {
+            ctx.fillRect(mesa.x, horizonY - mesa.h, mesa.w, mesa.h);
+            ctx.fillRect(mesa.x + mesa.w * 0.35, horizonY - mesa.h - mesa.top, mesa.w * 0.3, mesa.top);
+        });
 
-        // Draw horizon overlay glow line
-        ctx.strokeStyle = "#00f0ff";
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "#00f0ff";
+        // Draw distant cactus silhouettes
+        const cacti = [120, 260, 420, 560, 740];
+        cacti.forEach(x => {
+            ctx.fillRect(x, horizonY - 18, 6, 18);
+            ctx.fillRect(x - 6, horizonY - 14, 5, 6);
+            ctx.fillRect(x + 7, horizonY - 14, 5, 6);
+        });
+
+        // Draw horizon overlay line
+        ctx.strokeStyle = "rgba(244, 194, 122, 0.36)";
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = "rgba(244, 194, 122, 0.45)";
         ctx.beginPath();
         ctx.moveTo(0, horizonY);
         ctx.lineTo(canvas.width, horizonY);
@@ -1031,10 +1059,11 @@
         // Convert world Z & X lane coordinates to screen coordinates
         const screenY = horizonY + (canvas.height - horizonY) * scale;
         const roadWidth = roadWidthAtBottom * scale;
-        const screenX = canvas.width / 2 + horse.x * roadWidth;
+        const curveOffset = getRoadCurveAtZ(horse.z);
+        const screenX = canvas.width / 2 + (horse.x + curveOffset) * roadWidth;
 
         // Clip if off screen
-        if (screenY > canvas.height + 60 || screenX < -100 || screenX > canvas.width + 100) return;
+        if (screenY > canvas.height + 60 || screenX < -120 || screenX > canvas.width + 120) return;
 
         // Collision blink effect for player horse
         if (horse.isPlayer && invulnFrames > 0 && Math.floor(invulnFrames / 4) % 2 === 0) {
@@ -1044,116 +1073,150 @@
         ctx.save();
         ctx.translate(screenX, screenY);
         ctx.scale(scale, scale);
+        const sizeScale = horse.isPlayer ? 1.55 : 1.25;
 
-        // --- Render Horse inside Scaled Context (centered at 0, 0) ---
-        
-        // 1. Footprint ground shadow
-        ctx.fillStyle = "rgba(0,0,0,0.4)";
+        // 1. Ground shadow
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
         ctx.beginPath();
-        ctx.ellipse(0, 15, 30, 7, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 20 * sizeScale, 50 * sizeScale, 14 * sizeScale, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // 2. Horse body stroke neon styling
-        ctx.strokeStyle = horse.color;
-        ctx.lineWidth = 3.5;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = horse.color;
-
-        // 3. Draw cyber horse components
+        // 2. Horse body silhouette
+        ctx.fillStyle = horse.color;
+        ctx.strokeStyle = "#24170f";
+        ctx.lineWidth = 3 * sizeScale;
         ctx.beginPath();
-
-        // Capsule Body
-        ctx.ellipse(-8, -2, 22, 10, 0, 0, Math.PI * 2);
-
-        // Neck
-        ctx.moveTo(8, -5);
-        ctx.lineTo(18, -20);
-
-        // Head
-        ctx.lineTo(28, -18);
-        ctx.lineTo(24, -10);
-        ctx.lineTo(13, -7);
-
-        // Ears
-        ctx.moveTo(17, -21);
-        ctx.lineTo(20, -28);
-        ctx.lineTo(22, -20);
-
-        ctx.stroke();
-
-        // Turn off glow blur for inner details
-        ctx.shadowBlur = 0;
-        ctx.lineWidth = 3;
-
-        // 4. Draw articulated Running Legs
-        const swing = Math.sin(horse.legPhase);
-        const swingOpp = -Math.sin(horse.legPhase);
-
-        // Back leg 1
-        drawLeg(-18, 5, swing, horse.color);
-        // Back leg 2
-        drawLeg(-14, 5, swingOpp, horse.color, true);
-
-        // Front leg 1
-        drawLeg(5, 5, swingOpp + 0.3, horse.color);
-        // Front leg 2
-        drawLeg(10, 5, swing + 0.3, horse.color, true);
-
-        // 5. Tail
-        ctx.beginPath();
-        ctx.moveTo(-28, -5);
-        const tailWhip = Math.cos(horse.legPhase * 2) * 5;
-        ctx.quadraticCurveTo(-38, -10 + tailWhip, -45, -3 + tailWhip);
-        ctx.stroke();
-
-        // 6. Jockey/Rider outline (adds giant arcade character depth)
-        ctx.fillStyle = "#0c0f17";
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        // rider hunched forward
-        ctx.moveTo(-10, -10);
-        ctx.quadraticCurveTo(-14, -26, 0, -28); // back
-        ctx.lineTo(8, -23); // neck
-        ctx.lineTo(4, -12); // chest
+        ctx.moveTo(22 * sizeScale, 6 * sizeScale);
+        ctx.quadraticCurveTo(8 * sizeScale, 12 * sizeScale, 0, 24 * sizeScale);
+        ctx.quadraticCurveTo(-18 * sizeScale, 44 * sizeScale, -34 * sizeScale, 36 * sizeScale);
+        ctx.quadraticCurveTo(-44 * sizeScale, 28 * sizeScale, -44 * sizeScale, 18 * sizeScale);
+        ctx.quadraticCurveTo(-44 * sizeScale, 10 * sizeScale, -36 * sizeScale, 8 * sizeScale);
+        ctx.quadraticCurveTo(-24 * sizeScale, 4 * sizeScale, -14 * sizeScale, -6 * sizeScale);
+        ctx.quadraticCurveTo(-8 * sizeScale, -16 * sizeScale, 6 * sizeScale, -24 * sizeScale);
+        ctx.quadraticCurveTo(18 * sizeScale, -32 * sizeScale, 28 * sizeScale, -20 * sizeScale);
+        ctx.quadraticCurveTo(32 * sizeScale, -12 * sizeScale, 28 * sizeScale, 2 * sizeScale);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
 
-        // Helmet/Visor
-        ctx.fillStyle = horse.color;
+        // 3. Body shading details
+        ctx.strokeStyle = "rgba(0,0,0,0.16)";
+        ctx.lineWidth = 1.6 * sizeScale;
         ctx.beginPath();
-        ctx.arc(1, -29, 4, 0, Math.PI * 2);
+        ctx.moveTo(-8 * sizeScale, 10 * sizeScale);
+        ctx.quadraticCurveTo(-16 * sizeScale, 18 * sizeScale, -8 * sizeScale, 24 * sizeScale);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(10 * sizeScale, 0 * sizeScale);
+        ctx.quadraticCurveTo(0, 10 * sizeScale, -8 * sizeScale, 14 * sizeScale);
+        ctx.stroke();
+
+        // 4. Neck and head
+        ctx.beginPath();
+        ctx.moveTo(28 * sizeScale, 2 * sizeScale);
+        ctx.quadraticCurveTo(34 * sizeScale, -16 * sizeScale, 20 * sizeScale, -28 * sizeScale);
+        ctx.quadraticCurveTo(14 * sizeScale, -34 * sizeScale, 2 * sizeScale, -30 * sizeScale);
+        ctx.quadraticCurveTo(8 * sizeScale, -28 * sizeScale, 14 * sizeScale, -20 * sizeScale);
+        ctx.quadraticCurveTo(16 * sizeScale, -14 * sizeScale, 22 * sizeScale, -12 * sizeScale);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#23170f";
+        ctx.beginPath();
+        ctx.arc(26 * sizeScale, -16 * sizeScale, 3.5 * sizeScale, 0, Math.PI * 2);
         ctx.fill();
 
-        // 7. Horse tag number
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 10px monospace";
-        ctx.fillText(horse.number, -14, 2);
+        // 5. Mane detail
+        ctx.strokeStyle = "#1e130b";
+        ctx.lineWidth = 3.5 * sizeScale;
+        ctx.beginPath();
+        ctx.moveTo(18 * sizeScale, -6 * sizeScale);
+        ctx.bezierCurveTo(12 * sizeScale, -20 * sizeScale, 6 * sizeScale, -30 * sizeScale, -8 * sizeScale, -38 * sizeScale);
+        ctx.stroke();
+
+        ctx.lineWidth = 2.2 * sizeScale;
+        ctx.beginPath();
+        ctx.moveTo(22 * sizeScale, -4 * sizeScale);
+        ctx.quadraticCurveTo(12 * sizeScale, -16 * sizeScale, 4 * sizeScale, -26 * sizeScale);
+        ctx.stroke();
+
+        // 6. Tail
+        ctx.strokeStyle = "#24170f";
+        ctx.lineWidth = 4.2 * sizeScale;
+        ctx.beginPath();
+        ctx.moveTo(-36 * sizeScale, 16 * sizeScale);
+        const tailWhip = Math.cos(horse.legPhase * 1.6) * 8;
+        ctx.bezierCurveTo(-52 * sizeScale, 20 * sizeScale + tailWhip, -58 * sizeScale, 38 * sizeScale + tailWhip, -44 * sizeScale, 52 * sizeScale + tailWhip);
+        ctx.stroke();
+
+        ctx.lineWidth = 2.2 * sizeScale;
+        ctx.beginPath();
+        ctx.moveTo(-36 * sizeScale, 20 * sizeScale);
+        ctx.quadraticCurveTo(-50 * sizeScale, 34 * sizeScale + tailWhip, -42 * sizeScale, 44 * sizeScale + tailWhip);
+        ctx.stroke();
+
+        // 7. Legs
+        const swing = Math.sin(horse.legPhase);
+        const swingOpp = Math.sin(horse.legPhase + Math.PI / 2);
+        drawLeg(-18, 18, swing * 0.9, horse.color, false, true, sizeScale);
+        drawLeg(4, 16, swingOpp * 0.9, horse.color, false, true, sizeScale);
+        drawLeg(-18, 4, swingOpp + 0.4, horse.color, true, false, sizeScale);
+        drawLeg(10, 2, swing + 0.4, horse.color, true, false, sizeScale);
+
+        // 8. Saddle and race number
+        ctx.fillStyle = "#5c381d";
+        ctx.beginPath();
+        ctx.ellipse(-2 * sizeScale, -2 * sizeScale, 14 * sizeScale, 7 * sizeScale, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#2b180c";
+        ctx.stroke();
+
+        ctx.fillStyle = "#e7d5b8";
+        ctx.fillRect(-10 * sizeScale, -2 * sizeScale, 20 * sizeScale, 8 * sizeScale);
+        ctx.fillStyle = "#2b1c13";
+        ctx.font = `bold ${8 * sizeScale}px monospace`;
+        ctx.fillText(horse.number, -4 * sizeScale, 4 * sizeScale);
 
         ctx.restore();
     }
 
-    function drawLeg(startX, startY, swing, color, isSecondary) {
+    function drawLeg(startX, startY, swing, color, isSecondary, isRear, sizeScale = 1) {
         ctx.save();
-        ctx.strokeStyle = color;
-        if (isSecondary) ctx.strokeStyle = color + "99"; // opacity leg behind
-        ctx.lineWidth = 3.5;
+        const legColor = isSecondary ? "rgba(25, 18, 14, 0.8)" : "#2a1d14";
+        ctx.strokeStyle = legColor;
+        ctx.fillStyle = legColor;
+        ctx.lineWidth = (isRear ? 5 : 4) * sizeScale;
 
-        const thigh = 14;
-        const shin = 11;
+        const offsetX = startX * sizeScale;
+        const offsetY = startY * sizeScale;
+        const thigh = (isRear ? 22 : 16) * sizeScale;
+        const shin = (isRear ? 16 : 12) * sizeScale;
 
-        const jointX = startX + Math.sin(swing) * 9;
-        const jointY = startY + Math.cos(swing) * 9 + 4;
-
-        const hoofX = jointX + Math.sin(swing - 0.4) * shin;
-        const hoofY = jointY + Math.cos(swing - 0.4) * shin;
+        const kneeX = offsetX + Math.sin(swing) * (thigh * 0.45);
+        const kneeY = offsetY + Math.cos(swing) * (thigh * 0.35) + (isRear ? 4 : 2) * sizeScale;
+        const hoofX = kneeX + Math.sin(swing - 0.35) * shin;
+        const hoofY = kneeY + Math.cos(swing - 0.35) * shin;
 
         ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(jointX, jointY);
+        ctx.moveTo(offsetX, offsetY);
+        ctx.lineTo(kneeX, kneeY);
         ctx.lineTo(hoofX, hoofY);
         ctx.stroke();
+
+        // Knee joint detail
+        ctx.fillStyle = "rgba(0,0,0,0.2)";
+        ctx.beginPath();
+        ctx.arc(kneeX, kneeY, 2.5 * sizeScale, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Hoof block
+        ctx.fillStyle = "#1f140d";
+        ctx.beginPath();
+        ctx.ellipse(hoofX, hoofY, 3.5 * sizeScale, 2.5 * sizeScale, 0, 0, Math.PI * 2);
+        ctx.fill();
+
         ctx.restore();
     }
 
@@ -1188,8 +1251,8 @@
                 vz: -200 - Math.random() * 100,
                 vx: (Math.random() * 2 - 1) * 0.5,
                 vy: -5 - Math.random() * 15, // float up slightly
-                color: "rgba(255, 255, 255, 0.15)",
-                alpha: 0.6,
+                color: color || "rgba(210, 160, 90, 0.22)",
+                alpha: 0.5,
                 decay: 1.0 + Math.random() * 2.0,
                 size: 4 + Math.random() * 6
             });
@@ -1355,22 +1418,22 @@
        ========================================================================== */
     function drawMenuBackground() {
         if (!ctx) return;
-        ctx.fillStyle = "#05080e";
+        ctx.fillStyle = "#2f1e10";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Draw sky gradient
         const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
-        skyGrad.addColorStop(0, "#05070e");
-        skyGrad.addColorStop(0.7, "#180625");
-        skyGrad.addColorStop(1, "#360028");
+        skyGrad.addColorStop(0, "#3d2413");
+        skyGrad.addColorStop(0.7, "#b47b45");
+        skyGrad.addColorStop(1, "#e2b47a");
         ctx.fillStyle = skyGrad;
         ctx.fillRect(0, 0, canvas.width, horizonY);
 
         drawSynthwaveSun();
         drawCitySilhouette();
 
-        // Draw grid floor perspective lines (static menu layout)
-        ctx.strokeStyle = "rgba(0, 240, 255, 0.15)";
+        // Draw floor perspective lines (static menu layout)
+        ctx.strokeStyle = "rgba(244, 214, 175, 0.14)";
         ctx.lineWidth = 1;
         
         // horizontal pavement lines
@@ -1393,9 +1456,9 @@
         ctx.save();
         ctx.translate(canvas.width / 2, 240);
         ctx.scale(1.8, 1.8);
-        ctx.strokeStyle = "#00f0ff";
+        ctx.strokeStyle = "rgba(244, 214, 175, 0.85)";
         ctx.shadowBlur = 15;
-        ctx.shadowColor = "#00f0ff";
+        ctx.shadowColor = "rgba(244, 214, 175, 0.45)";
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.ellipse(-8, -2, 20, 10, 0, 0, Math.PI * 2);
